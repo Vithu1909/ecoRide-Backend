@@ -19,7 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if ($res) {
             $response = array("message" => "User Added Successfully");
         } else {
-            $response = array("message" => "User Added Successfully");
+            $response = array("message" => "Failed to add User");
         }
         echo json_encode($response);
     } catch (Exception $e) {
