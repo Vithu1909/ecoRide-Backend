@@ -215,14 +215,60 @@ class RideDetails {
             $dbcon = new DBconnector();
             $conn = $dbcon->getConnection();
 
-            $sql = "SELECT 
-            r.*,u.User_ID,u.Name,u.Email,u.PhoneNo,u.NicNo,u.Gender
-            FROM  
-                tb_ride r
-            INNER JOIN
-                tb_user u
-            ON
-                r.driverID = u.User_ID";
+            // $sql = "SELECT 
+            //             r.*, 
+            //             u.User_ID AS driver_ID, 
+            //             u.Name AS driverName, 
+            //             u.Email AS driverEmail, 
+            //             u.PhoneNo AS driverPhoneNo, 
+            //             u.NicNo AS driverNicNo, 
+                        
+            //             GROUP_CONCAT(b.PassengerID) AS passengers
+            //         FROM  
+            //             tb_ride r
+            //         INNER JOIN
+            //             tb_user u
+            //         ON
+            //             r.driverID = u.User_ID
+            //         LEFT JOIN
+            //             tb_booking b
+            //         ON
+            //             r.rideID = b.RideID
+            //         GROUP BY
+            //             r.rideID";
+            $sql="SELECT 
+    r.*, 
+    u.User_ID AS driver_ID, 
+    u.Name AS driverName, 
+    u.Email AS driverEmail, 
+    u.PhoneNo AS driverPhoneNo, 
+    u.NicNo AS driverNicNo, 
+    GROUP_CONCAT(
+        CONCAT(
+            'PassengerID:', p.User_ID, 
+            ', PassengerName:', p.Name, 
+            ', PassengerEmail:', p.Email, 
+            ', PassengerPhoneNo:', p.PhoneNo, 
+            ', PassengerNicNo:', p.NicNo
+        ) SEPARATOR '; '
+    ) AS passengers
+FROM  
+    tb_ride r
+INNER JOIN
+    tb_user u
+ON
+    r.driverID = u.User_ID
+LEFT JOIN
+    tb_booking b
+ON
+    r.rideID = b.RideID
+LEFT JOIN
+    tb_user p
+ON
+    b.PassengerID = p.User_ID
+GROUP BY
+    r.rideID, u.User_ID, u.Name, u.Email, u.PhoneNo, u.NicNo;
+";
             $stmt = $conn->prepare($sql);
 
             if ($stmt->execute()) {
