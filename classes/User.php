@@ -27,69 +27,70 @@ class User {
         $this->Email = $Email;
         $this->Password = $Password;
     }
+    
 
     public function getUser_ID() {
         return $this->User_ID;
     }
 
-    public function setUser_ID($value) {
-        $this->User_ID = $value;
+    public function setUser_ID($User_ID) {
+        $this->User_ID = $User_ID;
     }
 
     public function getUserName() {
         return $this->UserName;
     }
 
-    public function setUserName($value) {
-        $this->UserName = $value;
+    public function setUserName($UserName) {
+        $this->UserName = $UserName;
     }
 
     public function getName() {
         return $this->Name;
     }
 
-    public function setName($value) {
-        $this->Name = $value;
+    public function setName($Name) {
+        $this->Name = $Name;
     }
 
     public function getNicNo() {
         return $this->NicNo;
     }
 
-    public function setNicNo($value) {
-        $this->NicNo = $value;
+    public function setNicNo($NicNo) {
+        $this->NicNo = $NicNo;
     }
 
     public function getGender() {
         return $this->Gender;
     }
 
-    public function setGender($value) {
-        $this->Gender = $value;
+    public function setGender($Gender) {
+        $this->Gender = $Gender;
     }
 
     public function getPhoneNo() {
         return $this->PhoneNo;
     }
 
-    public function setPhoneNo($value) {
-        $this->PhoneNo = $value;
+    public function setPhoneNo($PhoneNo) {
+        $this->PhoneNo = $PhoneNo;
     }
 
     public function getEmail() {
         return $this->Email;
     }
 
-    public function setEmail($value) {
-        $this->Email = $value;
+    public function setEmail($Email) {
+        $this->Email = $Email;
     }
 
     public function getPassword() {
         return $this->Password;
     }
 
-    public function setPassword($value) {
-        $this->Password = $value;
+    public function setPassword($Password) {
+        $this->Password = $Password;
     }
 
     public function SignupUser() {
@@ -115,6 +116,45 @@ class User {
         } catch (PDOException $e) {
             return false;
         }
+    }
+    public function LoginUser($username, $password) {
+        try {
+            $dbcon = new DBconnector();
+            $conn = $dbcon->getConnection();
+            $sql = "SELECT * FROM tb_user WHERE UserName = :username LIMIT 1";
+            $stmt = $conn->prepare($sql);
+            $stmt->bindParam(':username', $username);
+            $stmt->execute();
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($user && password_verify($password, $user['Password'])) {
+                return $user;
+            } else {
+                return false;
+            }
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+    public static function DisplayUser()
+    {
+        try {
+            $dbcon = new DBconnector();
+            $conn = $dbcon->getConnection();
+
+            $sql = "SELECT * from tb_user";
+
+            $stmt = $conn->prepare($sql);
+
+            if ($stmt->execute()) {
+                $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                return $data;
+            } else {
+                return false;
+            }
+        } catch (PDOException $e) {
+            return false;
+        }
+
     }
 }
 ?>

@@ -1,5 +1,5 @@
 <?php
-header("Access-Control-Allow-Origin: http://localhost:3002");
+header("Access-Control-Allow-Origin: http://localhost:3000");
 
 require_once "../../classes/User.php";
 use classes\User;
