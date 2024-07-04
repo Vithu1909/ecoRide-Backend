@@ -1,18 +1,22 @@
 <?php
 header("Access-Control-Allow-Origin: http://localhost:3000");
+header("Content-Type: application/json; charset=UTF-8");
 
 require_once "../../classes/Message.php";
 use classes\Message;
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     try {
+        if (!isset($_POST["Msgname"], $_POST["Msgemail"], $_POST["Message"])) {
+            throw new Exception("Missing required fields");
+        }
+
         $Msgname = $_POST["Msgname"];
         $Msgemail = $_POST["Msgemail"];
         $Message = $_POST["Message"];
-       
 
-        $msg = new Message($MessageID,$Msgname, $Message, $Msgemail, );
-        $res = $msg->Addmessage();
+        $msg = new Message(null, $Msgname, $Msgemail, $Message, null);
+        $res = $msg->addMessage();
         if ($res) {
             $response = array("message" => "Message Added Successfully");
         } else {
@@ -27,4 +31,5 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $response = array("message" => "Invalid request method.");
     echo json_encode($response);
 }
+
 ?>

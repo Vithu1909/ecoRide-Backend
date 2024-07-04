@@ -6,20 +6,20 @@ use classes\User;
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     try {
-        $UserName = $_POST["username"];
         $Name = $_POST["name"];
-        $NicNo = $_POST["nic"];
-        $PhoneNo = $_POST["phone"];
+        $UserName = $_POST["username"];
         $Email = $_POST["email"];
+        $PhoneNo = $_POST["phone"];
+        $NicNo = $_POST["nic"];
         $Gender = $_POST["gender"];
         $Password = $_POST["password"];
 
-        $user = new User($Name, $UserName, $NicNo, $PhoneNo, $Email, $Gender, $Password);
+        $user = new User(null, $Name, $UserName, $NicNo, $PhoneNo, $Email, $Gender, $Password,null);
         $res = $user->SignupUser();
         if ($res) {
             $response = array("message" => "User Added Successfully");
         } else {
-            $response = array("message" => "Failed to add User");
+            $response = array("message" => "Failed to add User or User already exists");
         }
         echo json_encode($response);
     } catch (Exception $e) {
