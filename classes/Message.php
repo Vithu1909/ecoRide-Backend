@@ -76,10 +76,12 @@ class Message {
             $stmt->bindValue(':name', $this->name);
             $stmt->bindValue(':currentDate', $currentDate);
             $res = $stmt->execute();
+           
     
             if ($res) {
                 // Uncomment the line below to send email after successful database insert
-                //Message::SendMail($this->name, $this->email);
+                Message::SendMail($this->name, $this->email);
+               
                 return true;
             } else {
                 return false;
@@ -108,21 +110,20 @@ class Message {
     }
 
     public static function SendMail($name, $email) {
-        require '../mail/Exception.php';
-        require '../mail/PHPMailer.php';
-        require '../mail/SMTP.php';
-    
+        require __DIR__ . '/../mail/Exception.php';
+        require __DIR__ . '/../mail/PHPMailer.php';
+        require __DIR__ . '/../mail/SMTP.php';
         $mail = new PHPMailer(true);
         try {
-            $mail->SMTPDebug = 2; // Enable verbose debug output
+            $mail->SMTPDebug = 0; 
             $mail->isSMTP();
             $mail->Host = 'smtp.gmail.com';
             $mail->SMTPAuth = true;
-            $mail->Username = 'healerz763@gmail.com';
-            $mail->Password = 'reyx mitu tsmn quej';
+            $mail->Username = 'ecoridecst@gmail.com';
+            $mail->Password = 'efro alij itud xeqm';
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
             $mail->Port = 465;
-            $mail->setFrom('healerz763@gmail.com');
+            $mail->setFrom('ecoridecst@gmail.com');
             $mail->addAddress($email);
             $mail->isHTML(true);
             $mail->Subject = 'Message Sent Successfully!';
@@ -136,7 +137,7 @@ class Message {
             $mail->Body = $message;
     
             $mail->send();
-            echo "Message has been sent";
+           
             return true;
         } catch (Exception $e) {
             echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
