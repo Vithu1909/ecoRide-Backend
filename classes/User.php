@@ -109,42 +109,44 @@ class User {
     public function setotp($otp) {
         $this->otp = $otp;
     }
-    public function Updatepassword() {
-        try{
+   public function Updatepassword() {
+    try {
         $dbcon = new DBconnector();
         $conn = $dbcon->getConnection();
         $hashedPassword = password_hash($this->Password, PASSWORD_BCRYPT);
-        $query = "UPDATE tb_user SET Password = :password WHERE User_ID = :userid";
-                $stmt = $conn->prepare($query);
-                $stmt->bindParam(':password', $hashedPassword);
-                $stmt->bindParam(':userid', $this->User_ID);
-                $res = $stmt->execute();
-                if ($res) {
-                    $query1 = "SELECT * FROM tb_user WHERE User_ID = :userID";
-                    $stmt1 = $conn->prepare($query1);
-                    $stmt1->bindParam(':userID', $this->User_ID);
-                    $stmt1->execute();
-                    if ($stmt1->rowCount() > 0) {  
-                        $user = $stmt1->fetch(PDO::FETCH_ASSOC);
-                       // $this->userRole=$user['userrole'];
-                   
-                        return $user;
-
-                    } else {
-                        error_log(" Failed to Change password.");
-                        return false;
-                    }
-                
-                }
-            }
-                catch (PDOException $e) {
-                    error_log("Change password PDOException: " . $e->getMessage());
-                    return false;
-                }
         
-
-
+        $query = "UPDATE tb_user SET Password = :password, otp = :otp WHERE User_ID = :userid";
+        $stmt = $conn->prepare($query);
+        $stmt->bindParam(':password', $hashedPassword);
+        $defaultOtp = null; 
+        $stmt->bindParam(':otp', $defaultOtp);
+        $stmt->bindParam(':userid', $this->User_ID);
+        
+        $res = $stmt->execute();
+        if ($res) {
+            $query1 = "SELECT * FROM tb_user WHERE User_ID = :userID";
+            $stmt1 = $conn->prepare($query1);
+            $stmt1->bindParam(':userID', $this->User_ID);
+            $stmt1->execute();
+            
+            if ($stmt1->rowCount() > 0) {
+                $user = $stmt1->fetch(PDO::FETCH_ASSOC);
+                return $user;
+            } else {
+                error_log("Failed to Change password.");
+                return false;
+            }
+        } else {
+            error_log("Failed to execute update query.");
+            return false;
+        }
+    } catch (PDOException $e) {
+        error_log("Change password PDOException: " . $e->getMessage());
+        return false;
     }
+}
+
+    
 
 
 
@@ -278,7 +280,9 @@ class User {
             if ($stmt1->rowCount() > 0) {  
                 $user = $stmt1->fetch(PDO::FETCH_ASSOC);
                 $this->otp=$user['otp'];
+               
                 return $user;
+               
 
             } else {
                 error_log("sendOTP: Email not found in the database.");
