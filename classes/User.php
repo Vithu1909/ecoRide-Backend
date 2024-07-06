@@ -5,6 +5,8 @@ require_once "DBconnector.php";
 use classes\DBconnector;
 use PDOException;
 use PDO;
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
 class User {
     private $User_ID;
@@ -16,8 +18,9 @@ class User {
     private $Email;
     private $Password;
     private $userRole;
+    private $otp;
 
-    public function __construct($User_ID, $Name, $UserName, $NicNo, $PhoneNo, $Email, $Gender, $Password,$userRole) {
+    public function __construct($User_ID, $Name, $UserName, $NicNo, $PhoneNo, $Email, $Gender, $Password, $userRole, $otp) {
         $this->User_ID = $User_ID;
         $this->UserName = $UserName;
         $this->Name = $Name;
@@ -27,6 +30,7 @@ class User {
         $this->Email = $Email;
         $this->Password = $Password;
         $this->userRole = $userRole;
+        $this->otp = $otp;
     }
     public function getUser_ID() {
         return $this->User_ID;
@@ -98,6 +102,51 @@ class User {
     public function setuserRole($userRole) {
         $this->userRole = $userRole;
     }
+    public function getotp() {
+        return $this->Password;
+    }
+
+    public function setotp($otp) {
+        $this->otp = $otp;
+    }
+    public function Updatepassword() {
+        try{
+        $dbcon = new DBconnector();
+        $conn = $dbcon->getConnection();
+        $hashedPassword = password_hash($this->Password, PASSWORD_BCRYPT);
+        $query = "UPDATE tb_user SET Password = :password WHERE User_ID = :userid";
+                $stmt = $conn->prepare($query);
+                $stmt->bindParam(':password', $hashedPassword);
+                $stmt->bindParam(':userid', $this->User_ID);
+                $res = $stmt->execute();
+                if ($res) {
+                    $query1 = "SELECT * FROM tb_user WHERE User_ID = :userID";
+                    $stmt1 = $conn->prepare($query1);
+                    $stmt1->bindParam(':userID', $this->User_ID);
+                    $stmt1->execute();
+                    if ($stmt1->rowCount() > 0) {  
+                        $user = $stmt1->fetch(PDO::FETCH_ASSOC);
+                       // $this->userRole=$user['userrole'];
+                   
+                        return $user;
+
+                    } else {
+                        error_log(" Failed to Change password.");
+                        return false;
+                    }
+                
+                }
+            }
+                catch (PDOException $e) {
+                    error_log("Change password PDOException: " . $e->getMessage());
+                    return false;
+                }
+        
+
+
+    }
+
+
 
 
 
@@ -173,5 +222,116 @@ class User {
             return false;
         }
     }
+    public function sendOTP($otp) {
+        try {
+            $dbcon = new DBconnector();
+            $con = $dbcon->getConnection();
+           
+            $query1 = "SELECT * FROM tb_user WHERE Email = :email";
+            $stmt1 = $con->prepare($query1);
+            $stmt1->bindParam(':email', $this->Email);
+            $stmt1->execute();
+            
+            if ($stmt1->rowCount() > 0) {  
+                $user = $stmt1->fetch(PDO::FETCH_ASSOC);
+                $this->Name=$user['Name'];
+
+                $query = "UPDATE tb_user SET otp = :otp WHERE Email = :email";
+                $stmt = $con->prepare($query);
+                $stmt->bindParam(':otp', $otp);
+                $stmt->bindParam(':email', $this->Email);
+                $res = $stmt->execute();
+                
+                if ($res) {
+                   
+                    // Sending OTP email
+                    $emailSent = $this->sendOTPEmail($this->Email, $this->Name,$this->otp);
+                    if ($emailSent) {
+                        return true;
+                    } else {
+                        error_log("sendOTP: Failed to send OTP email.");
+                        return false;
+                    }
+                } else {
+                    error_log("sendOTP: Failed to update OTP in the database.");
+                    return false;
+                }
+            } else {
+                error_log("sendOTP: Email not found in the database.");
+                return "email_not_found";
+            }
+        } catch (PDOException $e) {
+            error_log("sendOTP PDOException: " . $e->getMessage());
+            return false;
+        }
+    }
+    public function VerifyOTP() {
+        try {
+            $dbcon = new DBconnector();
+            $con = $dbcon->getConnection();
+           
+            $query1 = "SELECT * FROM tb_user WHERE Email = :email";
+            $stmt1 = $con->prepare($query1);
+            $stmt1->bindParam(':email', $this->Email);
+            $stmt1->execute();
+            
+            if ($stmt1->rowCount() > 0) {  
+                $user = $stmt1->fetch(PDO::FETCH_ASSOC);
+                $this->otp=$user['otp'];
+                return $user;
+
+            } else {
+                error_log("sendOTP: Email not found in the database.");
+                return "email_not_found";
+            }
+        } catch (PDOException $e) {
+            error_log("sendOTP PDOException: " . $e->getMessage());
+            return false;
+        }
+    }
+
+
+    
+    
+    
+    
+    public static function sendOTPEmail($email,$name,$otp) {
+        require __DIR__ . '/../mail/Exception.php';
+        require __DIR__ . '/../mail/PHPMailer.php';
+        require __DIR__ . '/../mail/SMTP.php';
+        $mail = new PHPMailer(true);
+        try {
+            $mail->SMTPDebug = 0; 
+            $mail->isSMTP();
+            $mail->Host = 'smtp.gmail.com';
+            $mail->SMTPAuth = true;
+            $mail->Username = 'ecoridecst@gmail.com';
+            $mail->Password = 'efro alij itud xeqm';
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            $mail->Port = 465;
+            $mail->setFrom('ecoridecst@gmail.com');
+            $mail->addAddress($email);
+            $mail->isHTML(true);
+            $mail->Subject = 'Your OTP Code';
+            
+    
+             $message = "Dear $name<br><br>";
+            $message .= "Your OTP code is<br>";
+            $message .= "<span style='font-weight: bold;'text-align: center;''font-size: 16px;'>$otp</span><br>";
+            $message .= "<hr><br>";
+            //$message .= "Thank you for contacting us. We will get back to you shortly.<br><br>";
+            $message .= "<span style='font-weight: bold;'>Best regards,</span><br>";
+            $message .= "ecoRide Admin<br>";
+            $mail->Body = $message;
+    
+            $mail->send();
+           
+            return true;
+        } catch (Exception $e) {
+            echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+            return false;
+        }
+    }
+    
 }
 ?>

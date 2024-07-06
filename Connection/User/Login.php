@@ -13,7 +13,7 @@ if ($method === "POST") {
     $data = json_decode(file_get_contents("php://input"), true);
     $username = $data['username'];
     $password = $data['password'];
-    $user = new User(null, null, $username, null, null, null, null, $password,null);
+    $user = new User(null, null, $username, null, null, null, null, $password,null,null);
     $res = $user->LoginUser();
     if ($res) {
                     echo json_encode(array("message" => "Login successful.", "userID" => $res['User_ID'], "userrole" => $res['userrole']));

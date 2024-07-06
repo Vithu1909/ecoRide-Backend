@@ -14,7 +14,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $Gender = $_POST["gender"];
         $Password = $_POST["password"];
 
-        $user = new User(null, $Name, $UserName, $NicNo, $PhoneNo, $Email, $Gender, $Password,null);
+        $user = new User(null, $Name, $UserName, $NicNo, $PhoneNo, $Email, $Gender, $Password,null,null);
         $res = $user->SignupUser();
         if ($res) {
             $response = array("message" => "User Added Successfully");
