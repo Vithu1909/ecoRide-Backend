@@ -282,5 +282,42 @@ GROUP BY
             return false;
         }
     }
-}
-?>
+
+
+
+    public function AddRide() {
+        try {
+            $dbcon = new DBconnector();
+            $conn = $dbcon->getConnection();
+
+            
+            
+            $query = "INSERT INTO tb_ride (Ride_ID, vehicleNo, vehicleModel, seats, airCondition, StartLocation, EndLocation, Date, cost, StartTime, EndTime, gender, VehicleImg, route, preferences, publishedDate, publishedTime) 
+                      VALUES (null, :vehicleNo, :vehicleModel, :seats, :airCondition, :StartLocation, :EndLocation, :Date, :cost, :StartTime, :EndTime, :gender, :vehicleImg, :route, :preferences, :publishedDate, :publishedTime)";
+            
+            $stmt = $conn->prepare($query);
+            $stmt->bindValue(':vehicleNo', $this->vehicleNo);
+            $stmt->bindValue(':VehicleModel', $this->vehicleModel);
+            $stmt->bindValue(':seats', $this->seats);
+            $stmt->bindValue(':airCondition', $this->airCondition, PDO::PARAM_BOOL);
+            $stmt->bindValue(':StartLocation', $this->StartLocation);
+            $stmt->bindValue(':EndLocation', $this->EndLocation);
+            $stmt->bindValue(':Date', $this->Date);
+            $stmt->bindValue(':cost', $this->cost);
+            $stmt->bindValue(':StartTime', $this->StartTime);
+            $stmt->bindValue(':EndTime', $this->EndTime);
+            $stmt->bindValue(':gender', $this->gender);
+            $stmt->bindValue(':vehicleImg', $this->vehicleImg, PDO::PARAM_LOB);
+            $stmt->bindValue(':route', $this->route);
+            $stmt->bindValue(':preferences', $this->preferences);
+            $stmt->bindValue(':publishedDate', $this->publishedDate);
+            $stmt->bindValue(':publishedTime', $this->publishedTime);
+            
+            $res = $stmt->execute();
+            return $res;
+        } catch (PDOException $e) {
+            error_log("addRide PDOException: " . $e->getMessage());
+            return false;
+        }
+    }
+}    
