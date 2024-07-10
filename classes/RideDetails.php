@@ -253,6 +253,7 @@ class RideDetails {
     u.Email AS driverEmail, 
     u.PhoneNo AS driverPhoneNo, 
     u.NicNo AS driverNicNo, 
+    u.rating AS rating,
     GROUP_CONCAT(
         CONCAT(
             'PassengerID:', p.User_ID, 
@@ -337,6 +338,15 @@ GROUP BY
             $stmt->bindValue(':driverID',$this->Driver_ID);
             
             $res = $stmt->execute();
+            if($res)
+            {
+                $UserRole='driver';
+                $query1 = "UPDATE tb_user SET userrole = :userrole WHERE User_ID = :userid"; 
+                $stmt1 = $conn->prepare($query1);
+                $stmt1->bindParam(':userrole', $UserRole);
+                $stmt1->bindParam(':userid', $this->Driver_ID);
+                $res = $stmt1->execute();
+            }
             return true;
         } catch (PDOException $e) {
             error_log("addRide PDOException: " . $e->getMessage());
