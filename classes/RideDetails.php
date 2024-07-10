@@ -27,8 +27,9 @@ class RideDetails {
     private $route;
     private $preferences;
     private $publishedDate;
+    private $publishedTime;
 
-    public function __construct($Ride_ID, $Driver_ID, $Passanger_ID, $StartLocation, $EndLocation, $StartTime, $EndTime, $vehicleNo, $vehicleModel, $seats, $airCondition, $Date, $cost, $gender, $vehicleImg, $route, $preferences, $publishedDate) {
+    public function __construct($Ride_ID, $Driver_ID, $Passanger_ID, $StartLocation, $EndLocation, $StartTime, $EndTime, $vehicleNo, $vehicleModel, $seats, $airCondition, $Date, $cost, $gender, $vehicleImg, $route, $preferences, $publishedDate,$publishedTime) {
         $this->Ride_ID = $Ride_ID;
         $this->Driver_ID = $Driver_ID;
         $this->Passanger_ID = $Passanger_ID;
@@ -47,6 +48,7 @@ class RideDetails {
         $this->route = $route;
         $this->preferences = $preferences;
         $this->publishedDate = $publishedDate;
+        $this->publishedTime = $publishedTime;
     }
 
     public function getRide_ID() {
@@ -210,6 +212,14 @@ class RideDetails {
         return  $this->publishedDate = $publishedDate;
         
     }
+    public function getpublishedTime() {
+        return $this->publishedTime;
+    }
+
+    public function setpublishedTime($publishedTime) {
+        return  $this->publishedTime = $publishedTime;
+        
+    }
    public static function DisplayRide() {
         try {
             $dbcon = new DBconnector();
@@ -287,19 +297,31 @@ GROUP BY
 
     public function AddRide() {
         try {
+           
             $dbcon = new DBconnector();
             $conn = $dbcon->getConnection();
-
-            
-            
-            $query = "INSERT INTO tb_ride (Ride_ID, vehicleNo, vehicleModel, seats, airCondition, StartLocation, EndLocation, Date, cost, StartTime, EndTime, gender, VehicleImg, route, preferences, publishedDate, publishedTime) 
-                      VALUES (null, :vehicleNo, :vehicleModel, :seats, :airCondition, :StartLocation, :EndLocation, :Date, :cost, :StartTime, :EndTime, :gender, :vehicleImg, :route, :preferences, :publishedDate, :publishedTime)";
+           
+            $this->publishedDate = date('Y-m-d'); 
+            $this->publishedTime = date('H:i:s');
+    
+            $query = "INSERT INTO tb_ride (
+                          vehicleNo, vehicleModel, seats, airCondition, 
+                          departurePoint, destinationPoint, date, seatCost, 
+                          departureTime, destinationTime, Ridegender, 
+                          route, preferences, publishedDate, publishedTime, driverID
+                      ) 
+                      VALUES (
+                          :vehicleNo, :vehicleModel, :seats, :airCondition, 
+                          :StartLocation, :EndLocation, :Date, :cost, 
+                          :StartTime, :EndTime, :gender, 
+                          :route, :preferences, :publishedDate, :publishedTime, :driverID
+                      )";
             
             $stmt = $conn->prepare($query);
             $stmt->bindValue(':vehicleNo', $this->vehicleNo);
-            $stmt->bindValue(':VehicleModel', $this->vehicleModel);
+            $stmt->bindValue(':vehicleModel', $this->vehicleModel); 
             $stmt->bindValue(':seats', $this->seats);
-            $stmt->bindValue(':airCondition', $this->airCondition, PDO::PARAM_BOOL);
+            $stmt->bindValue(':airCondition', $this->airCondition);
             $stmt->bindValue(':StartLocation', $this->StartLocation);
             $stmt->bindValue(':EndLocation', $this->EndLocation);
             $stmt->bindValue(':Date', $this->Date);
@@ -307,17 +329,19 @@ GROUP BY
             $stmt->bindValue(':StartTime', $this->StartTime);
             $stmt->bindValue(':EndTime', $this->EndTime);
             $stmt->bindValue(':gender', $this->gender);
-            $stmt->bindValue(':vehicleImg', $this->vehicleImg, PDO::PARAM_LOB);
+            //$stmt->bindValue(':vehicleImg', $this->vehicleImg);
             $stmt->bindValue(':route', $this->route);
             $stmt->bindValue(':preferences', $this->preferences);
             $stmt->bindValue(':publishedDate', $this->publishedDate);
             $stmt->bindValue(':publishedTime', $this->publishedTime);
+            $stmt->bindValue(':driverID',$this->Driver_ID);
             
             $res = $stmt->execute();
-            return $res;
+            return true;
         } catch (PDOException $e) {
             error_log("addRide PDOException: " . $e->getMessage());
             return false;
         }
     }
+    
 }    

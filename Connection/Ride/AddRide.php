@@ -6,11 +6,10 @@ use classes\RideDetails;
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     try {
-    
         $vehicleNo = $_POST["vehicleNo"];
         $vehicleModel = $_POST["vehicleModel"];
         $seats = $_POST["seats"];
-        $airCondition = isset($_POST["airCondition"]) ? true : false; 
+        $airCondition = ($_POST["airCondition"]) ;
         $StartLocation = $_POST["departurePoint"];
         $EndLocation = $_POST["destinationPoint"];
         $Date = $_POST["date"];
@@ -18,18 +17,47 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $StartTime = $_POST["departureTime"];
         $EndTime = $_POST["destinationTime"];
         $gender = $_POST["gender"];
-        $vehicleImg = $_FILES["image"]["tmp_name"]; 
         $route = $_POST["route"];
         $preferences = $_POST["preferences"];
+        $driverID=$_POST["DriverID"];
+        
+        // // Handle the image file
+        // if (isset($_FILES["image"]) && $_FILES["image"]["error"] === UPLOAD_ERR_OK) {
+        //     $vehicleImg = file_get_contents($_FILES["image"]["tmp_name"]);
+        // } else {
+        //     throw new Exception("Error in uploading image");
+        // }
 
-    
-        $ride = new RideDetails(null, $vehicleNo, $vehicleModel, $seats, $airCondition, $StartLocation, $EndLocation, $Date, $cost, $StartTime, $EndTime, $gender, $vehicleImg, $route, $preferences);
+      
+        $ride = new RideDetails(
+            null,  // Ride_ID
+            $driverID,  // Driver_ID (will be set in AddRide)
+            null,  // Passanger_ID
+            $StartLocation,
+            $EndLocation,
+            $StartTime,
+            $EndTime,
+            $vehicleNo,
+            $vehicleModel,
+            $seats,
+            $airCondition,
+            $Date,
+            $cost,
+            $gender,
+           null,
+            $route,
+            $preferences,
+            null, // publishedDate (will be set in AddRide)
+            null  // publishedTime (will be set in AddRide)
+        );
+
+        // Add the ride
         $res = $ride->AddRide();
 
         if ($res) {
-            $response = array("message" => "Ride Added Successfully");
+            $response = array("message" => "Ride Added Successfully","status" =>1 );
         } else {
-            $response = array("message" => "Failed to add Ride");
+            $response = array("message" => "Failed to add Ride" ,"status" =>2  );
         }
         echo json_encode($response);
     } catch (Exception $e) {
