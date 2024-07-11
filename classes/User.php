@@ -206,17 +206,53 @@ class User {
             return false;
         }
     }
+    public function SelectUser() {
+        try {
+            $dbcon = new DBconnector();
+            $conn = $dbcon->getConnection();
+            $sql = "SELECT * FROM tb_user WHERE User_ID = :userid LIMIT 1";
+            $stmt = $conn->prepare($sql);
+            $stmt->bindParam(':userid', $this->User_ID);
+            $stmt->execute();
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+          
+              
+                return $user;
+          
+        } catch (PDOException $e) {
+            error_log("LoginUser PDOException: " . $e->getMessage());
+            return false;
+        }
+    }
     public static function DisplayUser() {
         try {
             $dbcon = new DBconnector();
             $conn = $dbcon->getConnection();
-
-            $sql = "SELECT * from tb_user";
-            $stmt = $conn->prepare($sql);
-
-            if ($stmt->execute()) {
-                $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                return $data;
+    
+           
+            $sqlUsers = "SELECT * FROM tb_user WHERE userrole != :userrole";
+            $stmtUsers = $conn->prepare($sqlUsers);
+            $userrole = "admin";
+            $stmtUsers->bindParam(":userrole", $userrole);
+    
+           
+            $sqlUserCount = "SELECT COUNT(*) AS user_count FROM tb_user WHERE userrole = 'user'";
+            $stmtUserCount = $conn->prepare($sqlUserCount);
+    
+           
+            $sqlDriverCount = "SELECT COUNT(*) AS driver_count FROM tb_user WHERE userrole = 'driver'";
+            $stmtDriverCount = $conn->prepare($sqlDriverCount);
+    
+            if ($stmtUsers->execute() && $stmtUserCount->execute() && $stmtDriverCount->execute()) {
+                $data = $stmtUsers->fetchAll(PDO::FETCH_ASSOC);
+                $userCount = $stmtUserCount->fetch(PDO::FETCH_ASSOC)['user_count'];
+                $driverCount = $stmtDriverCount->fetch(PDO::FETCH_ASSOC)['driver_count'];
+    
+                return [
+                    'users' => $data,
+                    'user_count' => $userCount,
+                    'driver_count' => $driverCount
+                ];
             } else {
                 return false;
             }
@@ -225,6 +261,7 @@ class User {
             return false;
         }
     }
+    
     public function sendOTP($otp) {
         try {
             $dbcon = new DBconnector();
