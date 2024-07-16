@@ -146,7 +146,26 @@ class User {
     }
 }
 
-    
+public function updateProfile() {
+    try {
+        $dbcon = new DBconnector();
+        $conn = $dbcon->getConnection();
+        $query = "UPDATE tb_user SET UserName = :username, Name = :name, Email = :email, NicNo = :nicno, Gender = :gender, PhoneNo = :phoneno WHERE User_ID = :userid";
+        $stmt = $conn->prepare($query);
+        $stmt->bindParam(':username', $this->UserName);
+        $stmt->bindParam(':name', $this->Name);
+        $stmt->bindParam(':email', $this->Email);
+        $stmt->bindParam(':nicno', $this->NicNo);
+        $stmt->bindParam(':gender', $this->Gender);
+        $stmt->bindParam(':phoneno', $this->PhoneNo);
+        $stmt->bindParam(':userid', $this->User_ID);
+        $res = $stmt->execute();
+        return $res;
+    } catch (PDOException $e) {
+        error_log("Update profile PDOException: " . $e->getMessage());
+        return false;
+    }
+}
 
 
 
@@ -374,6 +393,62 @@ class User {
             return false;
         }
     }
+
+    public function update_Password() {
+        try {
+            $dbcon = new DBconnector();
+            $conn = $dbcon->getConnection();
+            $hashedPassword = password_hash($this->Password, PASSWORD_BCRYPT);
+            $query = "UPDATE tb_user SET Password = :password, otp = NULL WHERE User_ID = :userid";
+            $stmt = $conn->prepare($query);
+            $stmt->bindParam(':password', $hashedPassword);
+            $stmt->bindParam(':userid', $this->User_ID);
+            $res = $stmt->execute();
+            return $res;
+        } catch (PDOException $e) {
+            error_log("Update password PDOException: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function update_Profile() {
+        try {
+            $dbcon = new DBconnector();
+            $conn = $dbcon->getConnection();
+            $query = "UPDATE tb_user SET UserName = :username, Name = :name, Email = :email, NicNo = :nicno, Gender = :gender, PhoneNo = :phoneno WHERE User_ID = :userid";
+            $stmt = $conn->prepare($query);
+            $stmt->bindParam(':username', $this->UserName);
+            $stmt->bindParam(':name', $this->Name);
+            $stmt->bindParam(':email', $this->Email);
+            $stmt->bindParam(':nicno', $this->NicNo);
+            $stmt->bindParam(':gender', $this->Gender);
+            $stmt->bindParam(':phoneno', $this->PhoneNo);
+            $stmt->bindParam(':userid', $this->User_ID);
+            $res = $stmt->execute();
+            return $res;
+        } catch (PDOException $e) {
+            error_log("Update profile PDOException: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteUser() {
+        try {
+            $dbcon = new DBconnector();
+            $conn = $dbcon->getConnection();
+            $query = "DELETE FROM tb_user WHERE User_ID = :userid";
+            $stmt = $conn->prepare($query);
+            $stmt->bindParam(':userid', $this->User_ID);
+            $res = $stmt->execute();
+            return $res;
+        } catch (PDOException $e) {
+            error_log("Delete user PDOException: " . $e->getMessage());
+            return false;
+        }
+    }
+
+
+
     
 }
 ?>
