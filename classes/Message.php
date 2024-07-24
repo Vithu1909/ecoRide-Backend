@@ -120,7 +120,7 @@ class Message {
             $mail->Host = 'smtp.gmail.com';
             $mail->SMTPAuth = true;
             $mail->Username = 'ecoridecst@gmail.com';
-            $mail->Password = 'efro alij itud xeqm';
+            $mail->Password = 'frqg vgig bgmn uyxf';
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
             $mail->Port = 465;
             $mail->setFrom('ecoridecst@gmail.com');

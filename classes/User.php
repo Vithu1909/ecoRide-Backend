@@ -255,7 +255,7 @@ public function updateProfile() {
             $stmtUsers->bindParam(":userrole", $userrole);
     
            
-            $sqlUserCount = "SELECT COUNT(*) AS user_count FROM tb_user WHERE userrole = 'user'";
+            $sqlUserCount = "SELECT COUNT(*) AS user_count FROM tb_user WHERE userrole = 'passenger'";
             $stmtUserCount = $conn->prepare($sqlUserCount);
     
            
