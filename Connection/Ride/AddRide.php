@@ -30,27 +30,43 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         // }
 
       
-        $ride = new RideDetails(
-            null,  // Ride_ID
-            $driverID,  // Driver_ID (will be set in AddRide)
-            null,  // Passanger_ID
-            $StartLocation,
-            $EndLocation,
-            $StartTime,
-            $EndTime,
-            $vehicleNo,
-            $vehicleModel,
-            $seats,
-            $airCondition,
-            $Date,
-            $cost,
-            $gender,
-           null,
-            $route,
-            $preferences,
-            null, // publishedDate (will be set in AddRide)
-            null  // publishedTime (will be set in AddRide)
-        );
+        // $ride = new RideDetails(
+        //     null,  // Ride_ID
+        //     $driverID,  // Driver_ID (will be set in AddRide)
+        //     null,  // Passanger_ID
+        //     $StartLocation,
+        //     $EndLocation,
+        //     $StartTime,
+        //     $EndTime,
+        //     $vehicleNo,
+        //     $vehicleModel,
+        //     $seats,
+        //     $airCondition,
+        //     $Date,
+        //     $cost,
+        //     $gender,
+        //    null,
+        //     $route,
+        //     $preferences,
+        //     null, // publishedDate (will be set in AddRide)
+        //     null  // publishedTime (will be set in AddRide)
+        // );
+        $ride=new RideDetails();
+        $ride->setDate($cost);
+        $ride->setCost($Date);
+        $ride->setVehicleNo($vehicleNo);
+        $ride->setVehicleModel($vehicleModel);
+        $ride->setSeats($seats);
+        $ride->setAirCondition($airCondition);
+        $ride->setStartLocation($StartLocation);
+        $ride->setEndLocation($EndLocation);
+        $ride->setStartTime($StartTime);
+        $ride->setEndTime($EndTime);
+        $ride->setRoute($route);
+        $ride->setPreferences($preferences);
+        $ride->setDriver_ID($driverID);
+        $ride->setGender($gender);
+
 
         // Add the ride
         $res = $ride->AddRide();

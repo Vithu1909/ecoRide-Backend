@@ -7,6 +7,8 @@ require_once "DBconnector.php";
 use classes\DBconnector;
 use PDOException;
 use PDO;
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
 class RideDetails {
     private $Ride_ID;
@@ -29,26 +31,30 @@ class RideDetails {
     private $publishedDate;
     private $publishedTime;
 
-    public function __construct($Ride_ID, $Driver_ID, $Passanger_ID, $StartLocation, $EndLocation, $StartTime, $EndTime, $vehicleNo, $vehicleModel, $seats, $airCondition, $Date, $cost, $gender, $vehicleImg, $route, $preferences, $publishedDate,$publishedTime) {
-        $this->Ride_ID = $Ride_ID;
-        $this->Driver_ID = $Driver_ID;
-        $this->Passanger_ID = $Passanger_ID;
-        $this->StartLocation = $StartLocation;
-        $this->EndLocation = $EndLocation;
-        $this->StartTime = $StartTime;
-        $this->EndTime = $EndTime;
-        $this->vehicleNo = $vehicleNo;
-        $this->vehicleModel = $vehicleModel;
-        $this->seats = $seats;
-        $this->airCondition = $airCondition;
-        $this->Date = $Date;
-        $this->cost = $cost;
-        $this->gender = $gender;
-        $this->vehicleImg = $vehicleImg;
-        $this->route = $route;
-        $this->preferences = $preferences;
-        $this->publishedDate = $publishedDate;
-        $this->publishedTime = $publishedTime;
+    // public function __construct($Ride_ID, $Driver_ID, $Passanger_ID, $StartLocation, $EndLocation, $StartTime, $EndTime, $vehicleNo, $vehicleModel, $seats, $airCondition, $Date, $cost, $gender, $vehicleImg, $route, $preferences, $publishedDate,$publishedTime) {
+    //     $this->Ride_ID = $Ride_ID;
+    //     $this->Driver_ID = $Driver_ID;
+    //     $this->Passanger_ID = $Passanger_ID;
+    //     $this->StartLocation = $StartLocation;
+    //     $this->EndLocation = $EndLocation;
+    //     $this->StartTime = $StartTime;
+    //     $this->EndTime = $EndTime;
+    //     $this->vehicleNo = $vehicleNo;
+    //     $this->vehicleModel = $vehicleModel;
+    //     $this->seats = $seats;
+    //     $this->airCondition = $airCondition;
+    //     $this->Date = $Date;
+    //     $this->cost = $cost;
+    //     $this->gender = $gender;
+    //     $this->vehicleImg = $vehicleImg;
+    //     $this->route = $route;
+    //     $this->preferences = $preferences;
+    //     $this->publishedDate = $publishedDate;
+    //     $this->publishedTime = $publishedTime;
+    // }
+    public function __construct()
+    {
+        
     }
 
     public function getRide_ID() {
@@ -353,5 +359,88 @@ GROUP BY
             return false;
         }
     }
+
+    public function RequestRide($Rideid, $userid){
+        try {
+            $dbcon = new DBconnector();
+            $con = $dbcon->getConnection();
+            $query = "SELECT u.Email, u.Name, r.date, r.destinationPoint, r.departureTime, r.destinationTime, r.departurePoint 
+                      FROM tb_user u 
+                      JOIN tb_ride r ON u.User_ID = r.driverID 
+                      WHERE r.rideID = ?";
+            $stmt = $con->prepare($query);
+            $stmt->bindValue(1, $Rideid);
+            $stmt->execute();
+            $res = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($res) {
+                $this->StartLocation = $res['departurePoint'];
+                $this->EndLocation = $res['destinationPoint'];
+                $Drivername = $res['Name'];
+                $this->Date = $res['date'];
+                $driverEmail = $res['Email'];
+                $this->StartTime = $res['departureTime'];
+                $this->EndTime = $res['destinationTime'];
+    
+                $query1 = "SELECT Name, Gender FROM tb_user WHERE User_ID = ?";
+                $stmt1 = $con->prepare($query1);
+                $stmt1->bindValue(1, $userid);
+                $stmt1->execute();
+                $user_res = $stmt1->fetch(PDO::FETCH_ASSOC);
+                if ($user_res) {
+                    $username = $user_res['Name'];
+                    $UserGender = $user_res['Gender'];
+                    RideDetails::sentRequestmail($Drivername, $driverEmail, $username, $UserGender, $this->StartLocation, $this->EndLocation, $this->StartTime, $this->EndTime,$this->Date);
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } catch (PDOException $e) {
+            die("Error handling the request: " . $e->getMessage());
+        }
+    }
+    
+    public static function sentRequestmail($Drivername, $email, $username, $userGender, $startLocation, $endLocation, $startTime, $endTime,$Date) {
+        require __DIR__ . '/../mail/Exception.php';
+        require __DIR__ . '/../mail/PHPMailer.php';
+        require __DIR__ . '/../mail/SMTP.php';
+        $mail = new PHPMailer(true);
+        try {
+            $mail->SMTPDebug = 0; 
+            $mail->isSMTP();
+            $mail->Host = 'smtp.gmail.com';
+            $mail->SMTPAuth = true;
+            $mail->Username = 'ecoridecst@gmail.com';
+            $mail->Password = 'efro alij itud xeqm';
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            $mail->Port = 465;
+            $mail->setFrom('ecoridecst@gmail.com');
+            $mail->addAddress($email);
+            $mail->isHTML(true);
+            $mail->Subject = 'Ride Request';
+    
+            $message = "Dear $Drivername,<br><br>";
+            $message .= "$username is requesting your ride.<br><br>";
+            $message .= "Ride information:<br>";
+            $message .= "Date: $Date<br>";
+            $message .= "Destination: $endLocation<br>";
+            $message .= "Departure Time: $startTime<br>";
+            $message .= "Arrival Time: $endTime<br><br>";
+            $message .= "Please check the website for more details.<br><br>";
+            $message .= "Best regards,<br>";
+            $message .= "ecoRide Admin<br>";
+            $mail->Body = $message;
+    
+            $mail->send();
+            return true;
+        } catch (Exception $e) {
+            echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+            return false;
+        }
+    }
+    
+
     
 }
