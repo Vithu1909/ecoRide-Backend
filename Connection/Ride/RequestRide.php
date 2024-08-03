@@ -7,23 +7,17 @@ use classes\RideDetails;
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     try {
-        $rideId = $_POST["rideid"];
-        $userID=$_POST["userid"];
-      
-        
-      
-
-      
-        $ride = new RideDetails();
-        $ride->RequestRide($rideId,$userID);
-
+        $userID = $_POST["userID"];
+        $seatsNo = $_POST["seatsNo"];
+        $rideId = $_POST["rideID"];
        
-        $res = $ride->AddRide();
+        $ride = new RideDetails();
+        $res = $ride->RequestRide($rideId, $userID, $seatsNo);
 
         if ($res) {
-            $response = array("message" => "Request sent Successfully","status" =>1 );
+            $response = array("message" => "Request sent Successfully", "status" => 1, "email" => $res);
         } else {
-            $response = array("message" => "Failed to Request Ride" ,"status" =>2  );
+            $response = array("message" => "Failed to Request Ride", "status" => 2);
         }
         echo json_encode($response);
     } catch (PDOException $e) {

@@ -31,261 +31,69 @@ class RideDetails {
     private $publishedDate;
     private $publishedTime;
 
-    // public function __construct($Ride_ID, $Driver_ID, $Passanger_ID, $StartLocation, $EndLocation, $StartTime, $EndTime, $vehicleNo, $vehicleModel, $seats, $airCondition, $Date, $cost, $gender, $vehicleImg, $route, $preferences, $publishedDate,$publishedTime) {
-    //     $this->Ride_ID = $Ride_ID;
-    //     $this->Driver_ID = $Driver_ID;
-    //     $this->Passanger_ID = $Passanger_ID;
-    //     $this->StartLocation = $StartLocation;
-    //     $this->EndLocation = $EndLocation;
-    //     $this->StartTime = $StartTime;
-    //     $this->EndTime = $EndTime;
-    //     $this->vehicleNo = $vehicleNo;
-    //     $this->vehicleModel = $vehicleModel;
-    //     $this->seats = $seats;
-    //     $this->airCondition = $airCondition;
-    //     $this->Date = $Date;
-    //     $this->cost = $cost;
-    //     $this->gender = $gender;
-    //     $this->vehicleImg = $vehicleImg;
-    //     $this->route = $route;
-    //     $this->preferences = $preferences;
-    //     $this->publishedDate = $publishedDate;
-    //     $this->publishedTime = $publishedTime;
-    // }
-    public function __construct()
-    {
-        
-    }
+    public function __construct() {}
 
-    public function getRide_ID() {
-        return $this->Ride_ID;
-    }
+   
+    
+    public function setRide_ID($Ride_ID) { $this->Ride_ID = $Ride_ID; }
+    public function setDriver_ID($Driver_ID) { $this->Driver_ID = $Driver_ID; }
+    public function setPassanger_ID($Passanger_ID) { $this->Passanger_ID = $Passanger_ID; }
+    public function setStartLocation($StartLocation) { $this->StartLocation = $StartLocation; }
+    public function setEndLocation($EndLocation) { $this->EndLocation = $EndLocation; }
+    public function setStartTime($StartTime) { $this->StartTime = $StartTime; }
+    public function setEndTime($EndTime) { $this->EndTime = $EndTime; }
+    public function setVehicleNo($vehicleNo) { $this->vehicleNo = $vehicleNo; }
+    public function setVehicleModel($vehicleModel) { $this->vehicleModel = $vehicleModel; }
+    public function setSeats($seats) { $this->seats = $seats; }
+    public function setAirCondition($airCondition) { $this->airCondition = $airCondition; }
+    public function setDate($Date) { $this->Date = $Date; }
+    public function setCost($cost) { $this->cost = $cost; }
+    public function setGender($gender) { $this->gender = $gender; }
+    public function setVehicleImg($vehicleImg) { $this->vehicleImg = $vehicleImg; }
+    public function setRoute($route) { $this->route = $route; }
+    public function setPreferences($preferences) { $this->preferences = $preferences; }
+    public function setPublishedDate($publishedDate) { $this->publishedDate = $publishedDate; }
+    public function setPublishedTime($publishedTime) { $this->publishedTime = $publishedTime; }
 
-    public function setRide_ID($Ride_ID) {
-        return $this->Ride_ID = $Ride_ID;
-        
-    }
-
-    public function getDriver_ID() {
-        return $this->Driver_ID;
-    }
-
-    public function setDriver_ID($Driver_ID) {
-        return $this->Driver_ID = $Driver_ID;
-       
-    }
-
-    public function getPassanger_ID() {
-        return $this->Passanger_ID;
-    }
-
-    public function setPassanger_ID($Passanger_ID) {
-        return  $this->Passanger_ID = $Passanger_ID;
-        
-    }
-
-    public function getStartLocation() {
-        return $this->StartLocation;
-    }
-
-    public function setStartLocation($StartLocation) {
-        return $this->StartLocation = $StartLocation;
-       
-    }
-
-    public function getEndLocation() {
-        return $this->EndLocation;
-    }
-
-    public function setEndLocation($EndLocation) {
-        return $this->EndLocation = $EndLocation;
-       
-    }
-
-    public function getStartTime() {
-        return $this->StartTime;
-    }
-
-    public function setStartTime($StartTime) {
-        return $this->StartTime = $StartTime;
-        
-    }
-
-    public function getEndTime() {
-        return $this->EndTime;
-    }
-
-    public function setEndTime($EndTime) {
-        return $this->EndTime = $EndTime;
-        
-    }
-
-    public function getVehicleNo() {
-        return $this->vehicleNo;
-    }
-
-    public function setVehicleNo($vehicleNo) {
-        return $this->vehicleNo = $vehicleNo;
-       
-    }
-
-    public function getVehicleModel() {
-        return $this->vehicleModel;
-    }
-
-    public function setVehicleModel($vehicleModel) {
-        return $this->vehicleModel = $vehicleModel;
-        
-    }
-
-    public function getSeats() {
-        return $this->seats;
-    }
-
-    public function setSeats($seats) {
-        return $this->seats = $seats;
-      
-    }
-
-    public function getAirCondition() {
-        return $this->airCondition;
-    }
-
-    public function setAirCondition($airCondition) {
-        return  $this->airCondition = $airCondition;
-        
-    }
-
-    public function getDate() {
-        return $this->Date;
-    }
-
-    public function setDate($Date) {
-        return  $this->Date = $Date;
-        
-    }
-
-    public function getCost() {
-        return $this->cost;
-    }
-
-    public function setCost($cost) {
-        return $this->cost = $cost;
-       
-    }
-
-    public function getGender() {
-        return $this->gender;
-    }
-
-    public function setGender($gender) {
-        return $this->gender = $gender;
-        
-    }
-
-    public function getVehicleImg() {
-        return $this->vehicleImg;
-    }
-
-    public function setVehicleImg($vehicleImg) {
-        return $this->vehicleImg = $vehicleImg;
-       
-    }
-
-    public function getRoute() {
-        return $this->route;
-    }
-
-    public function setRoute($route) {
-        return $this->route = $route;
-
-    }
-
-    public function getPreferences() {
-        return $this->preferences;
-    }
-
-    public function setPreferences($preferences) {
-        return $this->preferences = $preferences;
-       
-    }
-
-    public function getPublishedDate() {
-        return $this->publishedDate;
-    }
-
-    public function setPublishedDate($publishedDate) {
-        return  $this->publishedDate = $publishedDate;
-        
-    }
-    public function getpublishedTime() {
-        return $this->publishedTime;
-    }
-
-    public function setpublishedTime($publishedTime) {
-        return  $this->publishedTime = $publishedTime;
-        
-    }
-   public static function DisplayRide() {
+    public static function DisplayRide() {
         try {
             $dbcon = new DBconnector();
             $conn = $dbcon->getConnection();
-
-            // $sql = "SELECT 
-            //             r.*, 
-            //             u.User_ID AS driver_ID, 
-            //             u.Name AS driverName, 
-            //             u.Email AS driverEmail, 
-            //             u.PhoneNo AS driverPhoneNo, 
-            //             u.NicNo AS driverNicNo, 
-                        
-            //             GROUP_CONCAT(b.PassengerID) AS passengers
-            //         FROM  
-            //             tb_ride r
-            //         INNER JOIN
-            //             tb_user u
-            //         ON
-            //             r.driverID = u.User_ID
-            //         LEFT JOIN
-            //             tb_booking b
-            //         ON
-            //             r.rideID = b.RideID
-            //         GROUP BY
-            //             r.rideID";
-            $sql="SELECT 
-    r.*, 
-    u.User_ID AS driver_ID, 
-    u.Name AS driverName, 
-    u.Email AS driverEmail, 
-    u.PhoneNo AS driverPhoneNo, 
-    u.NicNo AS driverNicNo, 
-    u.rating AS rating,
-    GROUP_CONCAT(
-        CONCAT(
-            'PassengerID:', p.User_ID, 
-            ', PassengerName:', p.Name, 
-            ', PassengerEmail:', p.Email, 
-            ', PassengerPhoneNo:', p.PhoneNo, 
-            ', PassengerNicNo:', p.NicNo
-        ) SEPARATOR '; '
-    ) AS passengers
-FROM  
-    tb_ride r
-INNER JOIN
-    tb_user u
-ON
-    r.driverID = u.User_ID
-LEFT JOIN
-    tb_booking b
-ON
-    r.rideID = b.RideID
-LEFT JOIN
-    tb_user p
-ON
-    b.PassengerID = p.User_ID
-GROUP BY
-    r.rideID, u.User_ID, u.Name, u.Email, u.PhoneNo, u.NicNo;
-";
+            
+            $sql = "SELECT 
+                        r.*, 
+                        u.User_ID AS driver_ID, 
+                        u.Name AS driverName, 
+                        u.Email AS driverEmail, 
+                        u.PhoneNo AS driverPhoneNo, 
+                        u.NicNo AS driverNicNo, 
+                        u.rating AS rating,
+                        GROUP_CONCAT(
+                            CONCAT(
+                                'PassengerID:', p.User_ID, 
+                                ', PassengerName:', p.Name, 
+                                ', PassengerEmail:', p.Email, 
+                                ', PassengerPhoneNo:', p.PhoneNo, 
+                                ', PassengerNicNo:', p.NicNo
+                            ) SEPARATOR '; '
+                        ) AS passengers
+                    FROM  
+                        tb_ride r
+                    INNER JOIN
+                        tb_user u
+                    ON
+                        r.driverID = u.User_ID
+                    LEFT JOIN
+                        tb_booking b
+                    ON
+                        r.rideID = b.RideID
+                    LEFT JOIN
+                        tb_user p
+                    ON
+                        b.PassengerID = p.User_ID
+                    GROUP BY
+                        r.rideID, u.User_ID, u.Name, u.Email, u.PhoneNo, u.NicNo";
+            
             $stmt = $conn->prepare($sql);
 
             if ($stmt->execute()) {
@@ -299,8 +107,6 @@ GROUP BY
             return false;
         }
     }
-
-
 
     public function AddRide() {
         try {
@@ -352,15 +158,18 @@ GROUP BY
                 $stmt1->bindParam(':userrole', $UserRole);
                 $stmt1->bindParam(':userid', $this->Driver_ID);
                 $res = $stmt1->execute();
+                return true;
             }
-            return true;
+          
         } catch (PDOException $e) {
             error_log("addRide PDOException: " . $e->getMessage());
             return false;
         }
     }
+    
 
-    public function RequestRide($Rideid, $userid){
+
+    public function RequestRide($rideId, $userID, $seatsNo) {
         try {
             $dbcon = new DBconnector();
             $con = $dbcon->getConnection();
@@ -369,9 +178,10 @@ GROUP BY
                       JOIN tb_ride r ON u.User_ID = r.driverID 
                       WHERE r.rideID = ?";
             $stmt = $con->prepare($query);
-            $stmt->bindValue(1, $Rideid);
+            $stmt->bindValue(1, $rideId);
             $stmt->execute();
-            $res = $stmt->fetch(PDO::FETCH_ASSOC);
+            $res = $stmt->fetch(PDO::FETCH_ASSOC); // fetch a single row
+            
             if ($res) {
                 $this->StartLocation = $res['departurePoint'];
                 $this->EndLocation = $res['destinationPoint'];
@@ -383,26 +193,25 @@ GROUP BY
     
                 $query1 = "SELECT Name, Gender FROM tb_user WHERE User_ID = ?";
                 $stmt1 = $con->prepare($query1);
-                $stmt1->bindValue(1, $userid);
+                $stmt1->bindValue(1, $userID);
                 $stmt1->execute();
-                $user_res = $stmt1->fetch(PDO::FETCH_ASSOC);
+                $user_res = $stmt1->fetch(PDO::FETCH_ASSOC); // fetch a single row
+                
                 if ($user_res) {
                     $username = $user_res['Name'];
-                    $UserGender = $user_res['Gender'];
-                    RideDetails::sentRequestmail($Drivername, $driverEmail, $username, $UserGender, $this->StartLocation, $this->EndLocation, $this->StartTime, $this->EndTime,$this->Date);
-                    return true;
-                } else {
-                    return false;
+                   
+                    RideDetails::sentRequestmail($Drivername, $driverEmail, $username, $this->StartLocation, $this->EndLocation, $this->StartTime, $this->EndTime, $this->Date, $seatsNo);
+                    return $driverEmail;
                 }
-            } else {
-                return false;
             }
         } catch (PDOException $e) {
-            die("Error handling the request: " . $e->getMessage());
+            error_log("requestRide PDOException: " . $e->getMessage());
+            return false;
         }
     }
     
-    public static function sentRequestmail($Drivername, $email, $username, $userGender, $startLocation, $endLocation, $startTime, $endTime,$Date) {
+    
+    public static function sentRequestmail($Drivername, $driverEmail, $username,  $StartLocation, $EndLocation, $StartTime, $EndTime, $Date,$seatsNo) {
         require __DIR__ . '/../mail/Exception.php';
         require __DIR__ . '/../mail/PHPMailer.php';
         require __DIR__ . '/../mail/SMTP.php';
@@ -413,34 +222,32 @@ GROUP BY
             $mail->Host = 'smtp.gmail.com';
             $mail->SMTPAuth = true;
             $mail->Username = 'ecoridecst@gmail.com';
-            $mail->Password = 'efro alij itud xeqm';
+            $mail->Password = 'frqg vgig bgmn uyxf';
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
             $mail->Port = 465;
             $mail->setFrom('ecoridecst@gmail.com');
-            $mail->addAddress($email);
+            $mail->addAddress($driverEmail);
             $mail->isHTML(true);
-            $mail->Subject = 'Ride Request';
-    
-            $message = "Dear $Drivername,<br><br>";
-            $message .= "$username is requesting your ride.<br><br>";
-            $message .= "Ride information:<br>";
-            $message .= "Date: $Date<br>";
-            $message .= "Destination: $endLocation<br>";
-            $message .= "Departure Time: $startTime<br>";
-            $message .= "Arrival Time: $endTime<br><br>";
-            $message .= "Please check the website for more details.<br><br>";
-            $message .= "Best regards,<br>";
+            $mail->Subject = 'Request sent!';
+            $message = "Dear " . $Drivername . "<br><br>";
+            $message .= "<span style='color: green;'><b>A $username has requested $seatsNo seats for your ride.</b></span><br>";
+            $message .= "<hr><br>";
+            $message .= "Route: $StartLocation to $EndLocation<br>";
+            $message .= "Start Time:$StartTime <br>";
+            $message .= "Finish Time:$EndTime<br><br>";
+            $message .= "Please confirm the booking at your earliest convenience.<br><br>";
+            $message .= "<span style='font-weight: bold;'>Best regards,</span><br>";
             $message .= "ecoRide Admin<br>";
             $mail->Body = $message;
-    
+
             $mail->send();
+
+           
             return true;
         } catch (Exception $e) {
             echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
             return false;
-        }
+        } 
     }
-    
-
-    
 }
+?>
