@@ -457,5 +457,130 @@ class RideDetails {
             return false;
         }
     }
+    public function rejectBooking($Bookid){
+        try{
+            $dbcon = new DBconnector();
+            $con = $dbcon->getConnection();
+    
+            $query = "UPDATE tb_booking SET status=? WHERE BookingID=?";
+            $status = 'rejected';
+            $stmt = $con->prepare($query);
+            $stmt->bindValue(1, $status);
+            $stmt->bindValue(2, $Bookid);
+    
+            if($stmt->execute()) {
+                $query1 = "SELECT tb_user.*, tb_booking.* FROM tb_user JOIN tb_booking ON tb_user.User_ID = tb_booking.PassengerID WHERE tb_booking.BookingID = ?";
+                $stmt1 = $con->prepare($query1);
+                $stmt1->bindValue(1, $Bookid);
+                $stmt1->execute();
+                $user_res = $stmt1->fetch(PDO::FETCH_ASSOC);
+    
+                if($user_res) {
+                    $UserEmail = $user_res["Email"];
+                    $Username = $user_res["Name"];
+                    $seatsno = $user_res["seats"];
+                    $rideId = $user_res["RideID"];
+    
+                    $query2 = "SELECT tb_user.* FROM tb_user JOIN tb_booking ON tb_user.User_ID = tb_booking.driverId WHERE tb_booking.BookingID = ?";
+                    $stmt2 = $con->prepare($query2);
+                    $stmt2->bindValue(1, $Bookid);
+                    $stmt2->execute();
+                    $Driver_res = $stmt2->fetch(PDO::FETCH_ASSOC);
+    
+                    if($Driver_res) {
+                        $drivername = $Driver_res["Name"];
+                        $phone = $Driver_res["PhoneNo"];
+                        
+                        if(RideDetails::sentRejectMail($UserEmail, $Username, $drivername, $phone)) {
+                            return "Request rejected successfully";
+                        } else {
+                            return "Failed to send rejection email";
+                        }
+                    } else {
+                        return "Failed to fetch driver details";
+                    }
+                } else {
+                    return "Failed to fetch user details";
+                }
+            } else {
+                return "Failed to update booking status";
+            }
+        } catch(PDOException $e) {
+            return "rejectBooking PDOException: " . $e->getMessage();
+        }
+    }
+    
+    public static function sentRejectMail($email, $Username, $drivername, $phone) {
+        require __DIR__ . '/../mail/Exception.php';
+        require __DIR__ . '/../mail/PHPMailer.php';
+        require __DIR__ . '/../mail/SMTP.php';
+    
+        $mail = new PHPMailer(true);
+    
+        try {
+            $mail->SMTPDebug = 0; 
+            $mail->isSMTP();
+            $mail->Host = 'smtp.gmail.com';
+            $mail->SMTPAuth = true;
+            $mail->Username = 'ecoridecst@gmail.com';
+            $mail->Password = 'frqg vgig bgmn uyxf';
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            $mail->Port = 465;
+            $mail->setFrom('ecoridecst@gmail.com');
+            $mail->addAddress($email);
+            $mail->isHTML(true);
+            $mail->Subject = 'Booking Rejected';
+    
+            $message = "Dear " . $Username . ",<br><br>";
+            $message .= "Your booking request has been rejected by driver " . $drivername . ".<br>";
+            $message .= "For further information, please contact the driver at " . $phone . ".<br><br>";
+            $message .= "Best regards,<br>";
+            $message .= "ecoRide Admin";
+    
+            $mail->Body = $message;
+            $mail->send();
+    
+            return true;
+        } catch (Exception $e) {
+            echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+            return false;
+        }
+    }
+    public function deleteRide($rideId) {
+        try {
+            $dbcon = new DBconnector();
+            $con = $dbcon->getConnection();
+    
+           
+    
+           
+            $queryBookings = "DELETE FROM tb_booking WHERE RideID = ?";
+            $stmtBookings = $con->prepare($queryBookings);
+            $stmtBookings->bindValue(1, $rideId);
+    
+            if (!$stmtBookings->execute()) {
+                $con->rollBack();
+                return "Failed to delete bookings";
+            }
+    
+           
+            $queryRide = "DELETE FROM tb_ride WHERE RideID = ?";
+            $stmtRide = $con->prepare($queryRide);
+            $stmtRide->bindValue(1, $rideId);
+    
+            if ($stmtRide->execute()) {
+                
+                return "Ride and associated bookings deleted successfully";
+            } else {
+                
+                return "Failed to delete the ride";
+            }
+        } catch(PDOException $e) {
+            $con->rollBack();
+            return "deleteRide PDOException: " . $e->getMessage();
+        }
+    }
+    
+    
     
 }
