@@ -173,18 +173,19 @@ class RideDetails {
         try {
             $dbcon = new DBconnector();
             $con = $dbcon->getConnection();
-            $query = "SELECT u.Email, u.Name, r.date, r.destinationPoint, r.departureTime, r.destinationTime, r.departurePoint 
+            $query = "SELECT u.Email, u.Name,u.User_ID, r.date, r.destinationPoint, r.departureTime, r.destinationTime, r.departurePoint 
                       FROM tb_user u 
                       JOIN tb_ride r ON u.User_ID = r.driverID 
                       WHERE r.rideID = ?";
             $stmt = $con->prepare($query);
             $stmt->bindValue(1, $rideId);
             $stmt->execute();
-            $res = $stmt->fetch(PDO::FETCH_ASSOC); // fetch a single row
+            $res = $stmt->fetch(PDO::FETCH_ASSOC); 
             
             if ($res) {
                 $this->StartLocation = $res['departurePoint'];
                 $this->EndLocation = $res['destinationPoint'];
+                $driverId=$res['User_ID'];
                 $Drivername = $res['Name'];
                 $this->Date = $res['date'];
                 $driverEmail = $res['Email'];
@@ -195,20 +196,108 @@ class RideDetails {
                 $stmt1 = $con->prepare($query1);
                 $stmt1->bindValue(1, $userID);
                 $stmt1->execute();
-                $user_res = $stmt1->fetch(PDO::FETCH_ASSOC); // fetch a single row
+                $user_res = $stmt1->fetch(PDO::FETCH_ASSOC); 
                 
                 if ($user_res) {
                     $username = $user_res['Name'];
+                    $query2 ="INSERT INTO tb_booking (RideID,PassengerID,seats,driverId) VALUES(?,?,?,?)";
+                    $pstmt2=$con->prepare($query2);
+                    $pstmt2->bindValue(1,$rideId);
+                    $pstmt2->bindValue(2,$userID);
+                    $pstmt2->bindValue(3,$seatsNo);
+                    $pstmt2->bindValue(4,$driverId);
+                    if($pstmt2->execute())
+                    {
+                        RideDetails::sentRequestmail($Drivername, $driverEmail, $username, $this->StartLocation, $this->EndLocation, $this->StartTime, $this->EndTime, $this->Date, $seatsNo);
+                        return $driverEmail;
+
+                    }
                    
-                    RideDetails::sentRequestmail($Drivername, $driverEmail, $username, $this->StartLocation, $this->EndLocation, $this->StartTime, $this->EndTime, $this->Date, $seatsNo);
-                    return $driverEmail;
+                    
                 }
             }
         } catch (PDOException $e) {
-            error_log("requestRide PDOException: " . $e->getMessage());
-            return false;
+            die("requestRide PDOException: " . $e->getMessage());
+           
         }
     }
+
+    public function AcceptBooking($Bookid){
+        try{
+            $dbcon = new DBconnector();
+            $con = $dbcon->getConnection();
+    
+            $query = "UPDATE tb_booking SET status=? WHERE BookingID=?";
+            $status = 'Accepted';
+            $stmt = $con->prepare($query);
+            $stmt->bindValue(1, $status);
+            $stmt->bindValue(2, $Bookid);
+            
+            if($stmt->execute()) {
+                $query1 = "SELECT tb_user.*, tb_booking.* FROM tb_user JOIN tb_booking ON tb_user.User_ID = tb_booking.PassengerID WHERE tb_booking.BookingID = ?";
+                $stmt1 = $con->prepare($query1);
+                $stmt1->bindValue(1, $Bookid);
+                $stmt1->execute();
+                $user_res = $stmt1->fetch(PDO::FETCH_ASSOC);
+                
+                if($user_res) {
+                    $UserEmail = $user_res["Email"];
+                    $Username = $user_res["Name"];
+                    $seatsno = $user_res["seats"];
+                    $rideId = $user_res["RideID"];
+    
+                    $query2 = "SELECT tb_user.* FROM tb_user JOIN tb_booking ON tb_user.User_ID = tb_booking.driverId WHERE tb_booking.BookingID = ?";
+                    $stmt2 = $con->prepare($query2);
+                    $stmt2->bindValue(1, $Bookid);
+                    $stmt2->execute();
+                    $Driver_res = $stmt2->fetch(PDO::FETCH_ASSOC);
+    
+                    if($Driver_res) {
+                        $drivername = $Driver_res["Name"];
+                        $phone = $Driver_res["PhoneNo"];
+                        $query4 = "SELECT BookingSeats, seats FROM tb_ride WHERE rideID=?";
+                        $stmt4 = $con->prepare($query4);
+                        $stmt4->bindValue(1, $rideId);
+                        $stmt4->execute();
+                        $res = $stmt4->fetch(PDO::FETCH_ASSOC);
+    
+                        if($res) {
+                            $seactcount = $res["BookingSeats"];
+                            $totalseats = $res["seats"];
+                            $newseats = $seactcount + $seatsno;
+    
+                            $query3 = "UPDATE tb_ride SET BookingSeats=? WHERE rideID=?";
+                            $pstmt3 = $con->prepare($query3);
+                            $pstmt3->bindValue(1, $newseats);
+                            $pstmt3->bindValue(2, $rideId);
+    
+                            if($pstmt3->execute()) {
+                                if(RideDetails::sentAcceptMail($UserEmail, $Username, $drivername, $phone)) {
+                                    return "Request accepted successfully";
+                                } else {
+                                    return "Failed to send acceptance email";
+                                }
+                            } else {
+                                return "Failed to update ride booking seats";
+                            }
+                        } else {
+                            return "Failed to fetch ride details";
+                        }
+                    } else {
+                        return "Failed to fetch driver details";
+                    }
+                } else {
+                    return "Failed to fetch user details";
+                }
+            } else {
+                return "Failed to update booking status";
+            }
+        } catch(PDOException $e) {
+            return "requestRide PDOException: " . $e->getMessage();
+        }
+    }
+
+
     
     
     public static function sentRequestmail($Drivername, $driverEmail, $username,  $StartLocation, $EndLocation, $StartTime, $EndTime, $Date,$seatsNo) {
@@ -249,5 +338,124 @@ class RideDetails {
             return false;
         } 
     }
+    public static function sentAcceptMail($email, $Username, $drivername, $phone) {
+        require __DIR__ . '/../mail/Exception.php';
+        require __DIR__ . '/../mail/PHPMailer.php';
+        require __DIR__ . '/../mail/SMTP.php';
+        
+        $mail = new PHPMailer(true);
+        
+        try {
+            $mail->SMTPDebug = 0; 
+            $mail->isSMTP();
+            $mail->Host = 'smtp.gmail.com';
+            $mail->SMTPAuth = true;
+            $mail->Username = 'ecoridecst@gmail.com';
+            $mail->Password = 'frqg vgig bgmn uyxf';
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            $mail->Port = 465;
+            $mail->setFrom('ecoridecst@gmail.com');
+            $mail->addAddress($driverEmail);
+            $mail->isHTML(true);
+            $mail->Subject = 'Booking Accepted';
+            
+            $message = "Dear " . $Username . ",<br><br>";
+            $message .= "Your booking has been accepted by driver " . $drivername . ".<br>";
+            $message .= "For further information, please contact the driver at " . $phone . ".<br><br>";
+            $message .= "Best regards,<br>";
+            $message .= "ecoRide Admin";
+            
+            $mail->Body = $message;
+            $mail->send();
+            
+            return true;
+        } catch (Exception $e) {
+            echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+            return false;
+        }
+    }
+
+    public function getCurrentRide($userID) {
+        try {
+            $dbcon = new DBconnector();
+            $con = $dbcon->getConnection();
+    
+           
+            $query = "SELECT 
+                        b.BookingID AS Bookid, 
+                        r.departurePoint, 
+                        r.destinationPoint, 
+                        r.date, 
+                        r.departureTime, 
+                        r.destinationTime, 
+                        r.vehicleModel, 
+                        r.seatCost, 
+                        b.status, 
+                        (r.seats - r.BookingSeats) AS availableSeats, 
+                        u.Name AS driverName, 
+                        u.PhoneNo AS driverContact
+                      FROM 
+                        tb_booking b
+                      JOIN 
+                        tb_ride r ON b.RideID = r.rideID
+                      JOIN 
+                        tb_user u ON r.driverID = u.User_ID
+                      WHERE 
+                        b.PassengerID = ?";
+    
+            $stmt = $con->prepare($query);
+            $stmt->bindValue(1, $userID);
+            $stmt->execute();
+            $rideDetails = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+            if ($rideDetails) {
+               
+                $queryRequests = "SELECT 
+                                    b.BookingID AS id, 
+                                    u.Name AS passengerName, 
+                                    u.PhoneNo AS passengerContact, 
+                                    b.seats AS seatsRequested
+                                  FROM 
+                                    tb_booking b
+                                  JOIN 
+                                    tb_user u ON b.PassengerID = u.User_ID
+                                  WHERE 
+                                    b.RideID = ? AND b.status = 'waiting'";
+    
+                $stmtRequests = $con->prepare($queryRequests);
+                $stmtRequests->bindValue(1, $rideDetails['Bookid']);
+                $stmtRequests->execute();
+                $requests = $stmtRequests->fetchAll(PDO::FETCH_ASSOC);
+    
+               
+                $queryAcceptedPassengers = "SELECT 
+                                              b.BookingID AS id, 
+                                              u.Name AS passengerName, 
+                                              u.PhoneNo AS passengerContact, 
+                                              b.seats AS seatsRequested
+                                            FROM 
+                                              tb_booking b
+                                            JOIN 
+                                              tb_user u ON b.PassengerID = u.User_ID
+                                            WHERE 
+                                              b.RideID = ? AND b.status = 'accepted'";
+    
+                $stmtAcceptedPassengers = $con->prepare($queryAcceptedPassengers);
+                $stmtAcceptedPassengers->bindValue(1, $rideDetails['Bookid']);
+                $stmtAcceptedPassengers->execute();
+                $acceptedPassengers = $stmtAcceptedPassengers->fetchAll(PDO::FETCH_ASSOC);
+    
+                $rideDetails['requests'] = $requests;
+                $rideDetails['acceptedPassengers'] = $acceptedPassengers;
+    
+                return $rideDetails;
+            } else {
+                return null; // No current ride found for the user
+            }
+        } catch (PDOException $e) {
+            error_log("getCurrentRide PDOException: " . $e->getMessage());
+            return false;
+        }
+    }
+    
 }
-?>
