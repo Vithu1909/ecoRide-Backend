@@ -7,8 +7,8 @@ use classes\RideDetails;
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     try {
-        $BookId = $_POST["bookid"];
-       
+        $BookId = $_POST["Bookid"];
+        
         $ride = new RideDetails();
         $res = $ride->AcceptBooking($BookId);
 

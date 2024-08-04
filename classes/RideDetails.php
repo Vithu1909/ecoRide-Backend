@@ -92,7 +92,8 @@ class RideDetails {
                     ON
                         b.PassengerID = p.User_ID
                     GROUP BY
-                        r.rideID, u.User_ID, u.Name, u.Email, u.PhoneNo, u.NicNo";
+                        r.rideID, u.User_ID, u.Name, u.Email, u.PhoneNo, u.NicNo ";
+                        
             
             $stmt = $conn->prepare($sql);
 
@@ -263,7 +264,7 @@ class RideDetails {
     
                         if($res) {
                             $seactcount = $res["BookingSeats"];
-                            $totalseats = $res["seats"];
+                            //$totalseats = $res["seats"];
                             $newseats = $seactcount + $seatsno;
     
                             $query3 = "UPDATE tb_ride SET BookingSeats=? WHERE rideID=?";
@@ -355,7 +356,7 @@ class RideDetails {
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
             $mail->Port = 465;
             $mail->setFrom('ecoridecst@gmail.com');
-            $mail->addAddress($driverEmail);
+            $mail->addAddress($email);
             $mail->isHTML(true);
             $mail->Subject = 'Booking Accepted';
             
@@ -379,6 +380,10 @@ class RideDetails {
         try {
             $dbcon = new DBconnector();
             $con = $dbcon->getConnection();
+            $query1="SELECT  * FROM tb_booking WHERE driverId=?";
+            $pstmt=$con->prepare($query1);
+            $pstmt->bindValue(1,$userID);
+            
     
             // Query to fetch all ride requests made by the passenger
             $query = "SELECT 
@@ -401,7 +406,7 @@ class RideDetails {
                       JOIN 
                         tb_user u ON r.driverID = u.User_ID
                       WHERE 
-                        b.PassengerID = ? OR b.driverId= ?";
+                        b.PassengerID = ? OR b.driverId = ?";
     
             $stmt = $con->prepare($query);
             $stmt->bindValue(1, $userID);
@@ -414,7 +419,6 @@ class RideDetails {
             foreach ($rideDetailsList as $rideDetails) {
                 // Query to fetch ride requests for each ride
                 $queryRequests = "SELECT 
-                                   
                                     u.Name AS passengerName, 
                                     u.PhoneNo AS passengerContact, 
                                     b.seats AS seatsRequested
@@ -431,17 +435,16 @@ class RideDetails {
                 $requests = $stmtRequests->fetchAll(PDO::FETCH_ASSOC);
     
                 // Query to fetch accepted passengers for each ride
-                $queryAcceptedPassengers ="SELECT 
-                                   
-                                    u.Name AS passengerName, 
-                                    u.PhoneNo AS passengerContact, 
-                                    b.seats AS seatsRequested
-                                  FROM 
-                                    tb_booking b
-                                  JOIN 
-                                    tb_user u ON b.PassengerID = u.User_ID
-                                  WHERE 
-                                    b.BookingID = ? AND b.status = 'accepted'";
+                $queryAcceptedPassengers = "SELECT 
+                                              u.Name AS passengerName, 
+                                              u.PhoneNo AS passengerContact, 
+                                              b.seats AS seatsRequested
+                                            FROM 
+                                              tb_booking b
+                                            JOIN 
+                                              tb_user u ON b.PassengerID = u.User_ID
+                                            WHERE 
+                                              b.BookingID = ? AND b.status = 'accepted'";
     
                 $stmtAcceptedPassengers = $con->prepare($queryAcceptedPassengers);
                 $stmtAcceptedPassengers->bindValue(1, $rideDetails['Bookid']);

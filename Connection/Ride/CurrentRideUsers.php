@@ -13,7 +13,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $rideDetails = $ride->getCurrentRide($userID);
 
         if ($rideDetails) {
-            $response = array($rideDetails);
+            $response = $rideDetails; // No extra array wrapping
         } else {
             $response = array("message" => "No current ride found for the user", "status" => 2);
         }

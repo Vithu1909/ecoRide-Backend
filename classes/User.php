@@ -446,6 +446,24 @@ public function updateProfile() {
             return false;
         }
     }
+    public function selectUserrole() {
+        try {
+            $dbcon = new DBconnector();
+            $conn = $dbcon->getConnection();
+            $query = "SELECT userrole FROM tb_user WHERE User_ID = :userid";
+            $stmt = $conn->prepare($query);
+            $stmt->bindParam(':userid', $this->User_ID);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result['userrole'];
+        } catch (PDOException $e) {
+            error_log("Select user role PDOException: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+
+
 
 
 
