@@ -380,7 +380,7 @@ class RideDetails {
             $dbcon = new DBconnector();
             $con = $dbcon->getConnection();
     
-           
+            // Query to fetch all ride requests made by the passenger
             $query = "SELECT 
                         b.BookingID AS Bookid, 
                         r.departurePoint, 
@@ -401,17 +401,20 @@ class RideDetails {
                       JOIN 
                         tb_user u ON r.driverID = u.User_ID
                       WHERE 
-                        b.PassengerID = ?";
+                        b.PassengerID = ? OR b.driverId= ?";
     
             $stmt = $con->prepare($query);
             $stmt->bindValue(1, $userID);
+            $stmt->bindValue(2, $userID);
             $stmt->execute();
-            $rideDetails = $stmt->fetch(PDO::FETCH_ASSOC);
+            $rideDetailsList = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-            if ($rideDetails) {
-               
+            $output = [];
+    
+            foreach ($rideDetailsList as $rideDetails) {
+                // Query to fetch ride requests for each ride
                 $queryRequests = "SELECT 
-                                    b.BookingID AS id, 
+                                   
                                     u.Name AS passengerName, 
                                     u.PhoneNo AS passengerContact, 
                                     b.seats AS seatsRequested
@@ -420,43 +423,59 @@ class RideDetails {
                                   JOIN 
                                     tb_user u ON b.PassengerID = u.User_ID
                                   WHERE 
-                                    b.RideID = ? AND b.status = 'waiting'";
+                                    b.BookingID = ? AND b.status = 'waiting'";
     
                 $stmtRequests = $con->prepare($queryRequests);
                 $stmtRequests->bindValue(1, $rideDetails['Bookid']);
                 $stmtRequests->execute();
                 $requests = $stmtRequests->fetchAll(PDO::FETCH_ASSOC);
     
-               
-                $queryAcceptedPassengers = "SELECT 
-                                              b.BookingID AS id, 
-                                              u.Name AS passengerName, 
-                                              u.PhoneNo AS passengerContact, 
-                                              b.seats AS seatsRequested
-                                            FROM 
-                                              tb_booking b
-                                            JOIN 
-                                              tb_user u ON b.PassengerID = u.User_ID
-                                            WHERE 
-                                              b.RideID = ? AND b.status = 'accepted'";
+                // Query to fetch accepted passengers for each ride
+                $queryAcceptedPassengers ="SELECT 
+                                   
+                                    u.Name AS passengerName, 
+                                    u.PhoneNo AS passengerContact, 
+                                    b.seats AS seatsRequested
+                                  FROM 
+                                    tb_booking b
+                                  JOIN 
+                                    tb_user u ON b.PassengerID = u.User_ID
+                                  WHERE 
+                                    b.BookingID = ? AND b.status = 'accepted'";
     
                 $stmtAcceptedPassengers = $con->prepare($queryAcceptedPassengers);
                 $stmtAcceptedPassengers->bindValue(1, $rideDetails['Bookid']);
                 $stmtAcceptedPassengers->execute();
                 $acceptedPassengers = $stmtAcceptedPassengers->fetchAll(PDO::FETCH_ASSOC);
     
-                $rideDetails['requests'] = $requests;
-                $rideDetails['acceptedPassengers'] = $acceptedPassengers;
-    
-                return $rideDetails;
-            } else {
-                return null; // No current ride found for the user
+                // Build the final output array for each ride
+                $output[] = [
+                    'Bookid' => $rideDetails['Bookid'],
+                    'departurePoint' => $rideDetails['departurePoint'],
+                    'destinationPoint' => $rideDetails['destinationPoint'],
+                    'date' => $rideDetails['date'],
+                    'departureTime' => $rideDetails['departureTime'],
+                    'destinationTime' => $rideDetails['destinationTime'],
+                    'vehicleModel' => $rideDetails['vehicleModel'],
+                    'seatCost' => $rideDetails['seatCost'],
+                    'status' => $rideDetails['status'],
+                    'availableSeats' => $rideDetails['availableSeats'],
+                    'driver' => [
+                        'name' => $rideDetails['driverName'],
+                        'contact' => $rideDetails['driverContact']
+                    ],
+                    'requests' => $requests,
+                    'acceptedPassengers' => $acceptedPassengers
+                ];
             }
+    
+            return $output;
         } catch (PDOException $e) {
             error_log("getCurrentRide PDOException: " . $e->getMessage());
             return false;
         }
     }
+    
     public function rejectBooking($Bookid){
         try{
             $dbcon = new DBconnector();
