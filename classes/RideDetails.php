@@ -229,7 +229,7 @@ class RideDetails {
             $con = $dbcon->getConnection();
     
             $query = "UPDATE tb_booking SET status=? WHERE BookingID=?";
-            $status = 'Accepted';
+            $status = 'accepted';
             $stmt = $con->prepare($query);
             $stmt->bindValue(1, $status);
             $stmt->bindValue(2, $Bookid);
