@@ -177,9 +177,10 @@ public function updateProfile() {
             $conn = $dbcon->getConnection();
             
             // Prepare query to check if username already exists
-            $query1 = "SELECT * FROM tb_user WHERE UserName = :username";
+            $query1 = "SELECT * FROM tb_user WHERE UserName = :username OR Email=:email";
             $stmt1 = $conn->prepare($query1);
             $stmt1->bindParam(':username', $this->UserName);
+            $stmt1->bindParam(':email', $this->Email);
             $stmt1->execute();
             
             if ($stmt1->rowCount() > 0) {

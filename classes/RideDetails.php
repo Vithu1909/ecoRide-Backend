@@ -74,7 +74,9 @@ class RideDetails {
                                 ', PassengerName:', p.Name, 
                                 ', PassengerEmail:', p.Email, 
                                 ', PassengerPhoneNo:', p.PhoneNo, 
+                                ', status:', b.status,
                                 ', PassengerNicNo:', p.NicNo
+
                             ) SEPARATOR '; '
                         ) AS passengers
                     FROM  
@@ -514,7 +516,7 @@ class RideDetails {
                         $phone = $Driver_res["PhoneNo"];
                         
                         if(RideDetails::sentRejectMail($UserEmail, $Username, $drivername, $phone)) {
-                            return "Request rejected successfully";
+                            return "Request Reject successfully";
                         } else {
                             return "Failed to send rejection email";
                         }
@@ -555,7 +557,7 @@ class RideDetails {
     
             $message = "Dear " . $Username . ",<br><br>";
             $message .= "Your booking request has been rejected by driver " . $drivername . ".<br>";
-            $message .= "For further information, please contact the driver at " . $phone . ".<br><br>";
+            //$message .= "For further information, please contact the driver at " . $phone . ".<br><br>";
             $message .= "Best regards,<br>";
             $message .= "ecoRide Admin";
     

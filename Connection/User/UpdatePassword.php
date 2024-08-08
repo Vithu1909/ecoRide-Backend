@@ -17,7 +17,7 @@ if ($method === "POST") {
    
     $user = new User($User_id, null, null, null, null, $null, null, $Password, null, $null); 
 
-    $res = $user->Updatepassword(); // Pass the OTP to the sendOTP method
+    $res = $user->Updatepassword(); 
 
     if ($res) {
         echo json_encode(array("message" => "Password change successfully.", "status" => 1,"userrole"=>$res['userrole']));
