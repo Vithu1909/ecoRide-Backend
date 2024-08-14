@@ -15,7 +15,7 @@
          $con = new PDO($dsn,$this->dbuser,$this->dbpwd);
          return $con;
       } catch (PDOException $ex) {
-         die("ERROR :".$ex->getMessage());
+         echo("ERROR :".$ex->getMessage());
       }
     }
  }
