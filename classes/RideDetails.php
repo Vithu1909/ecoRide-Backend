@@ -769,7 +769,7 @@ class RideDetails {
                                 r.destinationTime, 
                                 r.vehicleModel, 
                                 r.seatCost, 
-                                (r.seats - COALESCE(SUM(b.seats), 0)) AS availableSeats, 
+                                (r.seats - r.BookingSeats) AS availableSeats,  
                                 u.Name AS driverName, 
                                 u.PhoneNo AS driverContact,                     
                                 b.status AS bookingStatus
