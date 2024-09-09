@@ -1021,6 +1021,146 @@ class RideDetails {
         }
     }
     
+
+    // public function editRide($rideID, $driverID, $date, $departureTime, $destinationTime, $availableSeats) {
+        //     try {
+        //       $dbcon = new DBconnector();
+        //       $con = $dbcon->getConnection();
+          
+        //       $queryCheckDriver = "SELECT * FROM tb_ride WHERE rideID = ? AND driverID = ?";
+        //       $stmtCheckDriver = $con->prepare($queryCheckDriver);
+        //       $stmtCheckDriver->bindValue(1, $rideID);
+        //       $stmtCheckDriver->bindValue(2, $driverID);
+        //       $stmtCheckDriver->execute();
+          
+        //       if ($stmtCheckDriver->rowCount() == 0) {
+        //         return ['status' => 0, 'message' => 'Unauthorized or Ride not found'];
+        //       }
+          
+        //       $queryUpdateRide = "UPDATE tb_ride 
+        //                           SET date = ?, departureTime = ?, destinationTime = ?, seats = ? 
+        //                           WHERE rideID = ? AND driverID = ?";
+          
+        //       $stmtUpdateRide = $con->prepare($queryUpdateRide);
+        //       $stmtUpdateRide->bindValue(1, $date);
+        //       $stmtUpdateRide->bindValue(2, $departureTime);
+        //       $stmtUpdateRide->bindValue(3, $destinationTime);
+        //       $stmtUpdateRide->bindValue(4, $availableSeats);
+        //       $stmtUpdateRide->bindValue(5, $rideID);
+        //       $stmtUpdateRide->bindValue(6, $driverID);
+          
+        //       if ($stmtUpdateRide->execute()) {
+        //         return ['status' => 1, 'message' => 'Ride updated successfully'];
+        //       } else {
+        //         return ['status' => 0, 'message' => 'Failed to update the ride'];
+        //       }
+        //     } catch (PDOException $e) {
+        //       error_log("editRide PDOException: " . $e->getMessage());
+        //       return ['status' => 0, 'message' => 'Database error: ' . $e->getMessage()];
+        //     }
+        //   }
+          
+        public function editRide($rideID, $driverID, $departureTime, $destinationTime, $availableSeats) {
+            try {
+                $dbcon = new DBconnector();
+                $con = $dbcon->getConnection();
+        
+    
+                $queryCheckDriver = "SELECT * FROM tb_ride WHERE rideID = ? AND driverID = ?";
+                $stmtCheckDriver = $con->prepare($queryCheckDriver);
+                $stmtCheckDriver->bindValue(1, $rideID);
+                $stmtCheckDriver->bindValue(2, $driverID);
+                $stmtCheckDriver->execute();
+                $result = $stmtCheckDriver->fetch(PDO::FETCH_ASSOC);
+                
+                if (!$result) {
+    
+                    return ['status' => 0, 'message' => "editRide: Ride or driver not found for rideID: $rideID, driverID: $driverID"];
+                }
+    
+                $queryUpdateRide = "UPDATE tb_ride 
+                                    SET departureTime = ?, destinationTime = ?, seats = ? 
+                                    WHERE rideID = ? AND driverID = ?";
+                
+                $stmtUpdateRide = $con->prepare($queryUpdateRide);
+    
+                $stmtUpdateRide->bindValue(1, $departureTime);
+                $stmtUpdateRide->bindValue(2, $destinationTime);
+                $stmtUpdateRide->bindValue(3, $availableSeats);
+                $stmtUpdateRide->bindValue(4, $rideID);
+                $stmtUpdateRide->bindValue(5, $driverID);
+        
+                if ($stmtUpdateRide->execute()) {
+    
+                    $queryGetAcceptedPassengers = "SELECT tb_user.Email, tb_user.Name 
+                                                   FROM tb_user 
+                                                   JOIN tb_booking ON tb_user.User_ID = tb_booking.PassengerID 
+                                                   WHERE tb_booking.RideID = ? AND tb_booking.status = 'accepted'";
+                    $stmtGetAcceptedPassengers = $con->prepare($queryGetAcceptedPassengers);
+                    $stmtGetAcceptedPassengers->bindValue(1, $rideID);
+                    $stmtGetAcceptedPassengers->execute();
+        
+                    $acceptedPassengers = $stmtGetAcceptedPassengers->fetchAll(PDO::FETCH_ASSOC);
+        
+                    foreach ($acceptedPassengers as $passenger) {
+                        $UserEmail = $passenger["Email"];
+                        $Username = $passenger["Name"];
+                        
+                        $this->sendRideUpdateMail($UserEmail, $Username, $departureTime, $destinationTime);
+                    }
+        
+                    return ['status' => 1, 'message' => 'Ride updated and passengers notified successfully'];
+                } else {
+                    return ['status' => 0, 'message' => 'Failed to update the ride'];
+                }
+        
+            } catch (PDOException $e) {
+                error_log("editRide PDOException: " . $e->getMessage());
+                return ['status' => 0, 'message' => 'Database error: ' . $e->getMessage()];
+            }
+        }
+        
+        public function sendRideUpdateMail($email, $username, $newDepartureTime, $newDestinationTime) {
+            require __DIR__ . '/../mail/Exception.php';
+            require __DIR__ . '/../mail/PHPMailer.php';
+            require __DIR__ . '/../mail/SMTP.php';
+        
+            $mail = new PHPMailer(true);
+        
+            try {
+                $mail->SMTPDebug = 0; 
+                $mail->isSMTP();
+                $mail->Host = 'smtp.gmail.com';
+                $mail->SMTPAuth = true;
+                $mail->Username = 'ecoridecst@gmail.com'; 
+                $mail->Password = 'frqg vgig bgmn uyxf';  
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+                $mail->Port = 465;
+                $mail->setFrom('ecoridecst@gmail.com');
+                $mail->addAddress($email);
+                $mail->isHTML(true);
+                $mail->Subject = 'Ride Details Updated';
+        
+                $message = "Dear " . $username . ",<br><br>";
+                $message .= "The ride you booked has been updated with new details:<br>";
+                $message .= "New Date: " . $newDate . "<br>";
+                $message .= "New Departure Time: " . $newDepartureTime . "<br>";
+                $message .= "New Destination Time: " . $newDestinationTime . "<br><br>";
+                $message .= "Please be prepared accordingly.<br><br>";
+                $message .= "Best regards,<br>";
+                $message .= "ecoRide Admin";
+        
+                $mail->Body = $message;
+        
+                $mail->send();
+        
+                return true;
+            } catch (Exception $e) {
+                error_log("sendRideUpdateMail Mailer Error: " . $mail->ErrorInfo);
+                return false;
+            }
+        }
     
     
 }
+
