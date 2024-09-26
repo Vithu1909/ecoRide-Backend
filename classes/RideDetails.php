@@ -1066,21 +1066,21 @@ class RideDetails {
                 $con = $dbcon->getConnection();
         
     
-                $queryCheckDriver = "SELECT * FROM tb_ride WHERE rideID = ? AND driverID = ?";
+                $queryCheckDriver = "SELECT * FROM tb_ride WHERE rideID = ? ";
                 $stmtCheckDriver = $con->prepare($queryCheckDriver);
                 $stmtCheckDriver->bindValue(1, $rideID);
-                $stmtCheckDriver->bindValue(2, $driverID);
+               // $stmtCheckDriver->bindValue(2, $driverID);
                 $stmtCheckDriver->execute();
                 $result = $stmtCheckDriver->fetch(PDO::FETCH_ASSOC);
                 
                 if (!$result) {
     
-                    return ['status' => 0, 'message' => "editRide: Ride or driver not found for rideID: $rideID, driverID: $driverID"];
+                    return ['status' => 0, 'message' => "editRide: Ride or driver not found for rideID: $rideID"];
                 }
     
                 $queryUpdateRide = "UPDATE tb_ride 
                                     SET departureTime = ?, destinationTime = ?, seats = ? 
-                                    WHERE rideID = ? AND driverID = ?";
+                                    WHERE rideID = ?";
                 
                 $stmtUpdateRide = $con->prepare($queryUpdateRide);
     
@@ -1088,7 +1088,7 @@ class RideDetails {
                 $stmtUpdateRide->bindValue(2, $destinationTime);
                 $stmtUpdateRide->bindValue(3, $availableSeats);
                 $stmtUpdateRide->bindValue(4, $rideID);
-                $stmtUpdateRide->bindValue(5, $driverID);
+                //$stmtUpdateRide->bindValue(5, $driverID);
         
                 if ($stmtUpdateRide->execute()) {
     
@@ -1143,7 +1143,7 @@ class RideDetails {
         
                 $message = "Dear " . $username . ",<br><br>";
                 $message .= "The ride you booked has been updated with new details:<br>";
-                $message .= "New Date: " . $newDate . "<br>";
+               // $message .= "New Date: " . $newDate . "<br>";
                 $message .= "New Departure Time: " . $newDepartureTime . "<br>";
                 $message .= "New Destination Time: " . $newDestinationTime . "<br><br>";
                 $message .= "Please be prepared accordingly.<br><br>";
