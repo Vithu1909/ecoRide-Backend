@@ -11,7 +11,7 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 class RideDetails {
-    private $Ride_ID;
+    private $rideID;
     private $Driver_ID;
     private $Passanger_ID;
     private $StartLocation;
@@ -31,11 +31,31 @@ class RideDetails {
     private $publishedDate;
     private $publishedTime;
 
-    public function __construct() {}
+    public function __construct($rideID, $Driver_ID, $Passanger_ID, $StartLocation, $EndLocation, $StartTime, $EndTime, $vehicleNo, $vehicleModel, $seats, $airCondition, $Date, $cost, $gender, $vehicleImg, $route, $preferences, $publishedDate, $publishedTime) {
+        $this->rideID = $rideID;
+        $this->Driver_ID = $Driver_ID;
+        $this->Passanger_ID = $Passanger_ID;
+        $this->StartLocation = $StartLocation;
+        $this->EndLocation = $EndLocation;
+        $this->StartTime = $StartTime;
+        $this->EndTime = $EndTime;
+        $this->vehicleNo = $vehicleNo;
+        $this->vehicleModel = $vehicleModel;
+        $this->seats = $seats;
+        $this->airCondition = $airCondition;
+        $this->Date = $Date;
+        $this->cost = $cost;
+        $this->gender = $gender;
+        $this->vehicleImg = $vehicleImg;
+        $this->route = $route;
+        $this->preferences = $preferences;
+        $this->publishedDate = $publishedDate;
+        $this->publishedTime = $publishedTime;
+    }
 
    
     
-    public function setRide_ID($Ride_ID) { $this->Ride_ID = $Ride_ID; }
+    public function setrideID($rideID) { $this->rideID = $rideID; }
     public function setDriver_ID($Driver_ID) { $this->Driver_ID = $Driver_ID; }
     public function setPassanger_ID($Passanger_ID) { $this->Passanger_ID = $Passanger_ID; }
     public function setStartLocation($StartLocation) { $this->StartLocation = $StartLocation; }
@@ -986,38 +1006,74 @@ class RideDetails {
             return false;
         }
     }
-    public function deleteRide($rideId) {
+    // public function deleteRide($rideId) {
+    //     try {
+    //         $dbcon = new DBconnector();
+    //         $con = $dbcon->getConnection();
+    
+           
+    
+           
+    //         $queryBookings = "DELETE FROM tb_booking WHERE RideID = ?";
+    //         $stmtBookings = $con->prepare($queryBookings);
+    //         $stmtBookings->bindValue(1, $rideId);
+    
+    //         if (!$stmtBookings->execute()) {
+    //             $con->rollBack();
+    //             return "Failed to delete bookings";
+    //         }
+    
+           
+    //         $queryRide = "DELETE FROM tb_ride WHERE RideID = ?";
+    //         $stmtRide = $con->prepare($queryRide);
+    //         $stmtRide->bindValue(1, $rideId);
+    
+    //         if ($stmtRide->execute()) {
+                
+    //             return "Ride and associated bookings deleted successfully";
+    //         } else {
+                
+    //             return "Failed to delete the ride";
+    //         }
+    //     } catch(PDOException $e) {
+    //         $con->rollBack();
+    //         return "deleteRide PDOException: " . $e->getMessage();
+    //     }
+    // }
+
+    public function SelectRide()
+    {
         try {
             $dbcon = new DBconnector();
-            $con = $dbcon->getConnection();
+            $conn = $dbcon->getConnection();
+            $sql = "SELECT * FROM tb_ride WHERE rideID = :rideid LIMIT 1";
+            $stmt = $conn->prepare($sql);
+            $stmt->bindParam(':rideid', $this->rideID);
+            $stmt->execute();
+            $ride = $stmt->fetch(PDO::FETCH_ASSOC);
     
-           
+            return $ride;
+        } catch (PDOException $e) {
+            error_log("SelectRide PDOException: " . $e->getMessage());
+            return false;
+        }
+    }
     
-           
-            $queryBookings = "DELETE FROM tb_booking WHERE RideID = ?";
-            $stmtBookings = $con->prepare($queryBookings);
-            $stmtBookings->bindValue(1, $rideId);
     
-            if (!$stmtBookings->execute()) {
-                $con->rollBack();
-                return "Failed to delete bookings";
-            }
-    
-           
-            $queryRide = "DELETE FROM tb_ride WHERE RideID = ?";
-            $stmtRide = $con->prepare($queryRide);
-            $stmtRide->bindValue(1, $rideId);
-    
-            if ($stmtRide->execute()) {
-                
-                return "Ride and associated bookings deleted successfully";
-            } else {
-                
-                return "Failed to delete the ride";
-            }
-        } catch(PDOException $e) {
-            $con->rollBack();
-            return "deleteRide PDOException: " . $e->getMessage();
+        public function deleteRide()
+    {
+        try {
+            $dbcon = new DBconnector();
+            $conn = $dbcon->getConnection();
+            $query = "DELETE FROM tb_ride WHERE rideID = :rideid";
+            $stmt = $conn->prepare($query);
+            $stmt->bindParam(':rideid', $this->rideID, PDO::PARAM_INT);  // Ensures it's treated as an integer
+      // Assuming Ride_ID is a property of the Ride class
+            $res = $stmt->execute();
+            return $res;
+        } catch (PDOException $e) {
+            error_log("Delete ride PDOException: " . $e->getMessage());
+            return false;
         }
     }
     
