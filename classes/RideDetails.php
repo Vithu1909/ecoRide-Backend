@@ -891,6 +891,7 @@ class RideDetails {
                 // Build the final output array for each ride
                 $output[] = [
                     'Bookid' => $rideDetails['Bookid'],
+                    'rideID' => $rideDetails['rideID'],
                     'departurePoint' => $rideDetails['departurePoint'],
                     'destinationPoint' => $rideDetails['destinationPoint'],
                     'date' => $rideDetails['date'],
@@ -1216,7 +1217,72 @@ class RideDetails {
                 return false;
             }
         }
-    
+
+        public function addrating($bookid, $rating) {
+            try {
+                $dbcon = new DBconnector();
+                $conn = $dbcon->getConnection();
+                
+                // Select the driverID based on booking ID
+                $selectDriverID = "SELECT driverId FROM tb_booking WHERE BookingID = ?";
+                $stmt = $conn->prepare($selectDriverID);
+                $stmt->bindValue(1, $bookid);
+                $stmt->execute();
+                $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                // If driverId is found, insert the rating
+                if ($result) {
+                    $driverId = $result['driverId'];
+        
+                    // Insert the new rating for the driver
+                    $query = "INSERT INTO tb_rating (driverID, rating) VALUES (?, ?)";
+                    $insertStmt = $conn->prepare($query);
+                    $insertStmt->bindValue(1, $driverId);
+                    $insertStmt->bindValue(2, $rating);
+                    $res = $insertStmt->execute();
+                    
+                    if ($res) {
+                        // Fetch all ratings for the driver and calculate the average
+                        $getAllRatings = "SELECT AVG(rating) as averageRating FROM tb_rating WHERE driverID = ?";
+                        $stmtAllRatings = $conn->prepare($getAllRatings);
+                        $stmtAllRatings->bindValue(1, $driverId);
+                        $stmtAllRatings->execute();
+                        $ratingResult = $stmtAllRatings->fetch(PDO::FETCH_ASSOC);
+                        
+                        // If average rating is calculated, update it in the tb_user table
+                        if ($ratingResult) {
+                            $averageRating = $ratingResult['averageRating'];
+        
+                            // Update the rating in tb_user table
+                            $updateRatingQuery = "UPDATE tb_user SET rating = ? WHERE User_ID = ?";
+                            $stmtUpdateRating = $conn->prepare($updateRatingQuery);
+                            $stmtUpdateRating->bindValue(1, $averageRating);
+                            $stmtUpdateRating->bindValue(2, $driverId);
+                            $updateRes = $stmtUpdateRating->execute();
+                            
+                            // Check if the update was successful
+                            if ($updateRes) {
+                                return array("message" => "Rating submitted and updated successfully", "averageRating" => $averageRating);
+                            } else {
+                                return "Failed to update average rating in user profile.";
+                            }
+                        } else {
+                            return "Failed to calculate average rating.";
+                        }
+                    } else {
+                        return "Failed to insert rating.";
+                    }
+                } else {
+                    return "Booking ID not found.";
+                }
+                
+            } catch (PDOException $e) {
+                error_log("addrating PDOException: " . $e->getMessage());
+                return false;
+            }
+        }
+        
+        
     
 }
 
