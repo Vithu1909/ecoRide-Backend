@@ -1265,7 +1265,22 @@ class RideDetails {
                             
                             // Check if the update was successful
                             if ($updateRes) {
-                                return array("message" => "Rating submitted and updated successfully", "averageRating" => $averageRating);
+                                // Now, update the ride status in tb_booking to 'finished'
+                                $updateBookingStatusQuery = "UPDATE tb_booking SET status = ? WHERE BookingID = ?";
+                                $stmtUpdateBookingStatus = $conn->prepare($updateBookingStatusQuery);
+                                $stmtUpdateBookingStatus->bindValue(1, 'finish');
+                                $stmtUpdateBookingStatus->bindValue(2, $bookid);
+                                $stmtUpdateBookingStatus->execute();
+                                
+                                if ($stmtUpdateBookingStatus->rowCount() > 0) {
+                                    // Successfully updated booking status, ride should no longer appear in the current rides
+                                    return array(
+                                        "message" => "Rating submitted, ride marked as finished, and user profile updated successfully.",
+                                        "averageRating" => $averageRating
+                                    );
+                                } else {
+                                    return "Rating submitted, but failed to update booking status.";
+                                }
                             } else {
                                 return "Failed to update average rating in user profile.";
                             }
@@ -1413,33 +1428,69 @@ class RideDetails {
             }
         }
 
-        public function finishRide($rideID, $userID) {
-            try {
-                $dbcon = new DBconnector();
-                $con = $dbcon->getConnection();
+        // public function finishRide($rideID, $userID) {
+        //     try {
+        //         $dbcon = new DBconnector();
+        //         $con = $dbcon->getConnection();
 
-                error_log("Received rideID: " . $rideID . " and userID (driverID): " . $userID);
+        //         error_log("Received rideID: " . $rideID . " and userID (driverID): " . $userID);
                 
-                // Step 1: Update the ride status to 'finished'
-                $queryUpdate = "UPDATE tb_ride SET rideStatus = ? WHERE driverID = ?";
-                $status = 'finished';
-                $stmt = $con->prepare($queryUpdate);
-                $stmt->bindValue(1, $status);
-                // $stmt->bindValue(2, $rideID);
-                $stmt->bindValue(2, $userID);
-                $stmt->execute();
+        //         // Step 1: Update the ride status to 'finished'
+        //         $queryUpdate = "UPDATE tb_ride SET rideStatus = ? WHERE driverID = ?";
+        //         $status = 'finished';
+        //         $stmt = $con->prepare($queryUpdate);
+        //         $stmt->bindValue(1, $status);
+        //         // $stmt->bindValue(2, $rideID);
+        //         $stmt->bindValue(2, $userID);
+        //         $stmt->execute();
 
-                if ($stmt->rowCount() > 0) {
-                    return true; 
-                } else {
-                    error_log("No matching ride found or not authorized for rideID: $rideID and driverID: $userID");
-                    return false; 
+        //         if ($stmt->rowCount() > 0) {
+        //             return true; 
+        //         } else {
+        //             error_log("No matching ride found or not authorized for rideID: $rideID and driverID: $userID");
+        //             return false; 
+        //         }
+        //     } catch (PDOException $e) {
+        //         error_log("finishRide PDOException: " . $e->getMessage());
+        //         return false;
+        //     }
+        // }
+
+        public function finishRide($userID) {
+                try {
+                    $dbcon = new DBconnector();
+                    $con = $dbcon->getConnection();
+            
+                    error_log("Received userID (driverID): " . $userID);
+            
+                    
+                    $queryUpdate = "UPDATE tb_ride SET rideStatus = ? WHERE driverID = ?";
+                    $status = 'finished';
+                    $stmt = $con->prepare($queryUpdate);
+                    $stmt->bindValue(1, $status);
+                    // $stmt->bindValue(2, $rideID);
+                    $stmt->bindValue(2, $userID);
+                    $stmt->execute();
+            
+                    if ($stmt->rowCount() > 0) {
+
+                        $queryUpdatePassengers = "UPDATE tb_booking SET status = ? WHERE driverid=?";
+                        $Status='finished';
+                        $stmtPassengers = $con->prepare($queryUpdatePassengers);
+                        $stmtPassengers->bindValue(1, $Status);
+                        $stmtPassengers->bindValue(2, $userID);
+                        $stmtPassengers->execute();
+            
+                        return true;
+                    } else {
+                        error_log("No matching ride found or not authorized driverID: $userID");
+                        return false;
+                    }
+                } catch (PDOException $e) {
+                    error_log("finishRide PDOException: " . $e->getMessage());
+                    return false;
                 }
-            } catch (PDOException $e) {
-                error_log("finishRide PDOException: " . $e->getMessage());
-                return false;
             }
-        }
     
 }
 
