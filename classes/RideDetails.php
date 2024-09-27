@@ -871,6 +871,7 @@ class RideDetails {
                 // Build the final output array for each ride
                 $output[] = [
                     'Bookid' => $rideDetails['Bookid'],
+                    'rideID' => $rideDetails['rideID'],
                     'departurePoint' => $rideDetails['departurePoint'],
                     'destinationPoint' => $rideDetails['destinationPoint'],
                     'date' => $rideDetails['date'],
