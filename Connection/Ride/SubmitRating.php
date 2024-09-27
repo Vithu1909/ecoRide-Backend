@@ -10,12 +10,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $BookId = $_POST["Bookid"];
         $rating = $_POST["rating"];
 
-        // Instantiate the RideDetails class and call addrating method
+       
         $ride = new RideDetails();
         $res = $ride->addrating($BookId, $rating);
 
         // Check if the rating was successfully added
-        if (is_array($res) && isset($res['message']) && isset($res['averageRating'])) {
+        if ($res) {
             $response = array(
                 "message" => $res['message'], 
                 "averageRating" => $res['averageRating'], 

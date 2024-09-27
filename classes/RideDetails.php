@@ -1285,6 +1285,7 @@ class RideDetails {
             }
         }
         
+        
         public function cancelBooking($Bookid) {
             try {
                 $dbcon = new DBconnector();
