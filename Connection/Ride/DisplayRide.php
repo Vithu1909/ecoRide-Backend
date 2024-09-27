@@ -1,5 +1,5 @@
 <?php
-header("Access-Control-Allow-Origin: http://localhost:3000");
+header("Access-Control-Allow-Origin: *");
 require_once "../../classes/RideDetails.php";
 header("Content-Type: application/json; charset=UTF-8");
 

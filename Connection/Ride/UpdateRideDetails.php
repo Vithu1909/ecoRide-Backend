@@ -1,6 +1,6 @@
 
 <?php
-// header("Access-Control-Allow-Origin: http://localhost:3000");
+// header("Access-Control-Allow-Origin: *");
 // header("Content-Type: application/json; charset=UTF-8");
 
 // require_once "../../classes/RideDetails.php";
@@ -33,7 +33,7 @@
 //   echo json_encode(["status" => 0, "message" => "Invalid request method"]);
 // }
 
-header("Access-Control-Allow-Origin: http://localhost:3000");
+header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
 
 require_once "../../classes/RideDetails.php";

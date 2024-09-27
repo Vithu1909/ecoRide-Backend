@@ -31,26 +31,8 @@ class RideDetails {
     private $publishedDate;
     private $publishedTime;
 
-    public function __construct($rideID, $Driver_ID, $Passanger_ID, $StartLocation, $EndLocation, $StartTime, $EndTime, $vehicleNo, $vehicleModel, $seats, $airCondition, $Date, $cost, $gender, $vehicleImg, $route, $preferences, $publishedDate, $publishedTime) {
-        $this->rideID = $rideID;
-        $this->Driver_ID = $Driver_ID;
-        $this->Passanger_ID = $Passanger_ID;
-        $this->StartLocation = $StartLocation;
-        $this->EndLocation = $EndLocation;
-        $this->StartTime = $StartTime;
-        $this->EndTime = $EndTime;
-        $this->vehicleNo = $vehicleNo;
-        $this->vehicleModel = $vehicleModel;
-        $this->seats = $seats;
-        $this->airCondition = $airCondition;
-        $this->Date = $Date;
-        $this->cost = $cost;
-        $this->gender = $gender;
-        $this->vehicleImg = $vehicleImg;
-        $this->route = $route;
-        $this->preferences = $preferences;
-        $this->publishedDate = $publishedDate;
-        $this->publishedTime = $publishedTime;
+    public function __construct() {
+ 
     }
 
    
@@ -1042,8 +1024,7 @@ class RideDetails {
     //     }
     // }
 
-    public function SelectRide()
-    {
+    public function SelectRide() {
         try {
             $dbcon = new DBconnector();
             $conn = $dbcon->getConnection();
@@ -1051,29 +1032,27 @@ class RideDetails {
             $stmt = $conn->prepare($sql);
             $stmt->bindParam(':rideid', $this->rideID);
             $stmt->execute();
-            $ride = $stmt->fetch(PDO::FETCH_ASSOC);
-    
+            $ride = $stmt->fetch(\PDO::FETCH_ASSOC);  // Use the fully qualified namespace for PDO
+
             return $ride;
-        } catch (PDOException $e) {
+        } catch (\PDOException $e) {  // Catch exception with fully qualified namespace
             error_log("SelectRide PDOException: " . $e->getMessage());
             return false;
         }
     }
     
     
-        public function deleteRide()
-    {
+    public function deleteRide() {
         try {
             $dbcon = new DBconnector();
             $conn = $dbcon->getConnection();
             $query = "DELETE FROM tb_ride WHERE rideID = :rideid";
             $stmt = $conn->prepare($query);
-            $stmt->bindParam(':rideid', $this->rideID, PDO::PARAM_INT);  // Ensures it's treated as an integer
-      // Assuming Ride_ID is a property of the Ride class
+            $stmt->bindParam(':rideid', $this->rideID);  // Use rideID set via setter method
             $res = $stmt->execute();
             return $res;
-        } catch (PDOException $e) {
-            error_log("Delete ride PDOException: " . $e->getMessage());
+        } catch (\PDOException $e) {  // Catch exception with fully qualified namespace
+            error_log("DeleteRide PDOException: " . $e->getMessage());
             return false;
         }
     }

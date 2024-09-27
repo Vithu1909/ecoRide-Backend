@@ -1,17 +1,22 @@
-
 <?php
-header("Access-Control-Allow-Origin: http://localhost:3000");
+header("Access-Control-Allow-Origin: *");
 
 require_once "../../classes/RideDetails.php";
 use classes\RideDetails;
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     try {
-        $rideID = $_POST["rideID"];
+        $rideID = $_POST["rideID"];  // Get the rideID from POST request
 
-        // Initialize Ride object and pass the ride ID
-        $ride = new RideDetails($rideID, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null); 
+        // Initialize Ride object without parameters
+        $ride = new RideDetails();  
+
+        // Set rideID using a setter method
+        $ride->setRideID($rideID);
+
+        // Call the SelectRide method to fetch ride details
         $res = $ride->SelectRide();
+        
         if ($res) {
             $response = array("res" => $res, "message" => "Ride selected successfully");
         } else {
