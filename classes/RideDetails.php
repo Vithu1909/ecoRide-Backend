@@ -1161,7 +1161,42 @@ class RideDetails {
                 return false;
             }
         }
-    
+
+        public function addrating($bookid, $rating) {
+            try {
+                $dbcon = new DBconnector();
+                $conn = $dbcon->getConnection();
+                
+                // Select the driverID based on booking ID
+                $selectDriverID = "SELECT driverId FROM tb_booking WHERE BookingID = ?";
+                $stmt = $conn->prepare($selectDriverID);
+                $stmt->bindValue(1, $bookid);
+                $stmt->execute();
+                $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                // If driverId is found, insert the rating
+                if ($result) {
+                    $query = "INSERT INTO tb_rating (driverID, rating) VALUES (?, ?)";
+                    $insertStmt = $conn->prepare($query);
+                    $insertStmt->bindValue(1, $result['driverId']);
+                    $insertStmt->bindValue(2, $rating);
+                    $res = $insertStmt->execute();
+                    
+                    if ($res) {
+                        return true;
+                    } else {
+                        return "Failed to insert rating.";
+                    }
+                } else {
+                    return "Booking ID not found.";
+                }
+                
+            } catch (PDOException $e) {
+                error_log("addrating PDOException: " . $e->getMessage());
+                return false;
+            }
+        }
+        
     
 }
 
