@@ -12,7 +12,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         $ride = new RideDetails();
 
-        $res = $ride->finishRide($rideID, $userID);
+        $res = $ride->finishRide($userID);
 
         if ($res) {
             $response = array("message" => "Ride finished successfully", "status" => 1);
