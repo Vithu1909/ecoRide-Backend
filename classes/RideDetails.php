@@ -1301,13 +1301,102 @@ class RideDetails {
         }
         
         
-        public function cancelBooking($Bookid) {
+        // public function cancelBooking($Bookid) {
+        //     try {
+        //         $dbcon = new DBconnector();
+        //         $con = $dbcon->getConnection();
+
+        //         $con->beginTransaction();
+
+        //         $query = "UPDATE tb_booking SET status=? WHERE BookingID=?";
+        //         $status = 'cancel';
+        //         $stmt = $con->prepare($query);
+        //         $stmt->bindValue(1, $status);
+        //         $stmt->bindValue(2, $Bookid);
+        
+        //         if ($stmt->execute()) {
+
+        //             $query1 = "SELECT tb_user.*, tb_booking.* FROM tb_user 
+        //                        JOIN tb_booking ON tb_user.User_ID = tb_booking.PassengerID 
+        //                        WHERE tb_booking.BookingID = ?";
+        //             $stmt1 = $con->prepare($query1);
+        //             $stmt1->bindValue(1, $Bookid);
+        //             $stmt1->execute();
+        //             $user_res = $stmt1->fetch(PDO::FETCH_ASSOC);
+        
+        //             if ($user_res) {
+        //                 $Username = $user_res["Name"];
+        //                 $rideId = $user_res["RideID"];
+        //                 $seatsToRelease = (int)$user_res["seats"];  
+
+        //                 $query2 = "SELECT Seats FROM tb_ride WHERE RideID = ?";
+        //                 $stmt2 = $con->prepare($query2);
+        //                 $stmt2->bindValue(1, $rideId);
+        //                 $stmt2->execute();
+        //                 $ride_res = $stmt2->fetch(PDO::FETCH_ASSOC);
+        
+        //                 if ($ride_res) {
+        //                     $currentAvailableSeats = (int)$ride_res["Seats"]; 
+        //                     $updatedAvailableSeats = $currentAvailableSeats + $seatsToRelease;  
+        //                     $query3 = "UPDATE tb_ride SET Seats=? WHERE RideID=?";
+        //                     $stmt3 = $con->prepare($query3);
+        //                     $stmt3->bindValue(1, $updatedAvailableSeats);
+        //                     $stmt3->bindValue(2, $rideId);
+        
+        //                     if ($stmt3->execute()) {
+        //                         $query4 = "SELECT tb_user.* FROM tb_user 
+        //                                    JOIN tb_booking ON tb_user.User_ID = tb_booking.driverId 
+        //                                    WHERE tb_booking.BookingID = ?";
+        //                         $stmt4 = $con->prepare($query4);
+        //                         $stmt4->bindValue(1, $Bookid);
+        //                         $stmt4->execute();
+        //                         $Driver_res = $stmt4->fetch(PDO::FETCH_ASSOC);
+        
+        //                         if ($Driver_res) {
+        //                             $driverEmail = $Driver_res["Email"];
+        //                             $drivername = $Driver_res["Name"];
+
+        //                             if (RideDetails::sentCancelMail($driverEmail, $drivername, $Username)) {
+                                     
+        //                                 $con->commit();
+        //                                 return [
+        //                                     "message" => "Booking cancelled and driver notified successfully",
+        //                                     "availableSeats" => $updatedAvailableSeats 
+        //                                 ];
+        //                             } else {
+                                      
+        //                                 $con->rollBack();
+        //                                 return "Failed to send cancellation email to driver";
+        //                             }
+        //                         } else {
+        //                             return "Failed to fetch driver details";
+        //                         }
+        //                     } else {
+                               
+        //                         $con->rollBack();
+        //                         return "Failed to update available seats for the ride";
+        //                     }
+        //                 } else {
+        //                     return "Failed to fetch ride details";
+        //                 }
+        //             } else {
+        //                 return "Failed to fetch user details";
+        //             }
+        //         } else {
+        //             return "Failed to update booking status";
+        //         }
+        //     } catch (PDOException $e) {
+        //         $con->rollBack();
+        //         return "cancelBooking PDOException: " . $e->getMessage();
+        //     }
+        // }
+        public function cancelBooking($Bookid) { 
             try {
                 $dbcon = new DBconnector();
                 $con = $dbcon->getConnection();
-
+        
                 $con->beginTransaction();
-
+        
                 $query = "UPDATE tb_booking SET status=? WHERE BookingID=?";
                 $status = 'cancel';
                 $stmt = $con->prepare($query);
@@ -1315,7 +1404,6 @@ class RideDetails {
                 $stmt->bindValue(2, $Bookid);
         
                 if ($stmt->execute()) {
-
                     $query1 = "SELECT tb_user.*, tb_booking.* FROM tb_user 
                                JOIN tb_booking ON tb_user.User_ID = tb_booking.PassengerID 
                                WHERE tb_booking.BookingID = ?";
@@ -1329,7 +1417,7 @@ class RideDetails {
                         $rideId = $user_res["RideID"];
                         $seatsToRelease = (int)$user_res["seats"];  
 
-                        $query2 = "SELECT Seats FROM tb_ride WHERE RideID = ?";
+                        $query2 = "SELECT Seats, BookingSeats FROM tb_ride WHERE RideID = ?";
                         $stmt2 = $con->prepare($query2);
                         $stmt2->bindValue(1, $rideId);
                         $stmt2->execute();
@@ -1337,13 +1425,18 @@ class RideDetails {
         
                         if ($ride_res) {
                             $currentAvailableSeats = (int)$ride_res["Seats"]; 
-                            $updatedAvailableSeats = $currentAvailableSeats + $seatsToRelease;  
-                            $query3 = "UPDATE tb_ride SET Seats=? WHERE RideID=?";
+                            $currentBookingSeats = (int)$ride_res["BookingSeats"]; 
+                            // $updatedAvailableSeats = $currentAvailableSeats + $seatsToRelease;  
+                            $updatedBookingSeats = $currentBookingSeats - $seatsToRelease;  
+        
+                            $query3 = "UPDATE tb_ride SET BookingSeats=? WHERE RideID=?";
                             $stmt3 = $con->prepare($query3);
-                            $stmt3->bindValue(1, $updatedAvailableSeats);
+                            // $stmt3->bindValue(1, $updatedAvailableSeats);
+                            $stmt3->bindValue(1, $updatedBookingSeats); 
                             $stmt3->bindValue(2, $rideId);
         
                             if ($stmt3->execute()) {
+        
                                 $query4 = "SELECT tb_user.* FROM tb_user 
                                            JOIN tb_booking ON tb_user.User_ID = tb_booking.driverId 
                                            WHERE tb_booking.BookingID = ?";
@@ -1355,16 +1448,25 @@ class RideDetails {
                                 if ($Driver_res) {
                                     $driverEmail = $Driver_res["Email"];
                                     $drivername = $Driver_res["Name"];
-
+        
                                     if (RideDetails::sentCancelMail($driverEmail, $drivername, $Username)) {
-                                     
-                                        $con->commit();
-                                        return [
-                                            "message" => "Booking cancelled and driver notified successfully",
-                                            "availableSeats" => $updatedAvailableSeats 
-                                        ];
+
+                                        $query5 = "DELETE FROM tb_booking WHERE BookingID = ?";
+                                        $stmt5 = $con->prepare($query5);
+                                        $stmt5->bindValue(1, $Bookid);
+        
+                                        if ($stmt5->execute()) {
+                                            $con->commit();
+                                            return [
+                                                "message" => "Booking cancelled, booking removed, and driver notified successfully",
+                                                "availableSeats" => $currentAvailableSeats ,
+                                                "updatedBookingSeats" => $updatedBookingSeats  
+                                            ];
+                                        } else {
+                                            $con->rollBack();
+                                            return "Failed to remove booking record";
+                                        }
                                     } else {
-                                      
                                         $con->rollBack();
                                         return "Failed to send cancellation email to driver";
                                     }
@@ -1372,9 +1474,8 @@ class RideDetails {
                                     return "Failed to fetch driver details";
                                 }
                             } else {
-                               
                                 $con->rollBack();
-                                return "Failed to update available seats for the ride";
+                                return "Failed to update available seats and booking count for the ride";
                             }
                         } else {
                             return "Failed to fetch ride details";
@@ -1390,7 +1491,6 @@ class RideDetails {
                 return "cancelBooking PDOException: " . $e->getMessage();
             }
         }
-        
         public static function sentCancelMail($driverEmail, $drivername, $Username) {
             require __DIR__ . '/../mail/Exception.php';
             require __DIR__ . '/../mail/PHPMailer.php';
