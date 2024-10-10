@@ -11,16 +11,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $vehicleModel = $_POST["vehicleModel"];
         $seats = $_POST["seats"];
         $airCondition = ($_POST["airCondition"]) ;
+        $carType=$_POST["carType"];
         $StartLocation = $_POST["departurePoint"];
         $EndLocation = $_POST["destinationPoint"];
         $Date = $_POST["date"];
-        $cost = $_POST["seatCost"];
+        // $cost = $_POST["seatCost"];
         $StartTime = $_POST["departureTime"];
         $EndTime = $_POST["destinationTime"];
         $gender = $_POST["gender"];
         $route = $_POST["route"];
         $preferences = $_POST["preferences"];
         $driverID=$_POST["DriverID"];
+        $ridedistance = $_POST["ridedistance"]; // Added ridedistance
 
         $ride=new RideDetails();
         $ride->setCost($cost);
@@ -29,6 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $ride->setVehicleModel($vehicleModel);
         $ride->setSeats($seats);
         $ride->setAirCondition($airCondition);
+        $ride->setcarType($carType);
         $ride->setStartLocation($StartLocation);
         $ride->setEndLocation($EndLocation);
         $ride->setStartTime($StartTime);
@@ -37,7 +40,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $ride->setPreferences($preferences);
         $ride->setDriver_ID($driverID);
         $ride->setGender($gender);
-
+        $ride->setRideDistance($ridedistance); // Set the ride distance
         $res = $ride->AddRide();
 
         if ($res) {
