@@ -10,9 +10,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $userID = $_POST["userID"];
         $seatsNo = $_POST["seatsNo"];
         $rideId = $_POST["rideID"];
-       
+        $distance = $_POST["distance"];
+        $fromtowhere=$_POST["fromtowhere"];
+        
         $ride = new RideDetails();
-        $res = $ride->RequestRide($rideId, $userID, $seatsNo);
+        $res = $ride->RequestRide($rideId, $userID, $seatsNo, $distance,$fromtowhere);
 
         if ($res) {
             $response = array("message" => "Request sent Successfully", "status" => 1, "email" => $res);

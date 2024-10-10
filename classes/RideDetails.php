@@ -30,7 +30,9 @@ class RideDetails {
     private $preferences;
     private $publishedDate;
     private $publishedTime;
+    private $carType;
 
+    private $ridedistance;
     public function __construct() {}
 
    
@@ -54,6 +56,9 @@ class RideDetails {
     public function setPreferences($preferences) { $this->preferences = $preferences; }
     public function setPublishedDate($publishedDate) { $this->publishedDate = $publishedDate; }
     public function setPublishedTime($publishedTime) { $this->publishedTime = $publishedTime; }
+
+    public function setcarType($carType){$this->carType=$carType;}
+    public function setRideDistance($ridedistance){$this->ridedistance=$ridedistance;}
 
     public static function DisplayRide() {
         try {
@@ -179,17 +184,19 @@ class RideDetails {
             $this->publishedDate = date('Y-m-d'); 
             $this->publishedTime = date('H:i:s');
     
+    $calculatedSeatCost = $this->calculateCostPerSeat($this->carType, $this->ridedistance, $this->seats);
+
             $query = "INSERT INTO tb_ride (
-                          vehicleNo, vehicleModel, seats, airCondition, 
+                          vehicleNo, vehicleModel, seats, airCondition,carType, 
                           departurePoint, destinationPoint, date, seatCost, 
                           departureTime, destinationTime, Ridegender, 
-                          route, preferences, publishedDate, publishedTime, driverID
+                          route, preferences, publishedDate, publishedTime, driverID, ridedistance
                       ) 
                       VALUES (
-                          :vehicleNo, :vehicleModel, :seats, :airCondition, 
+                          :vehicleNo, :vehicleModel, :seats, :airCondition,:carType, 
                           :StartLocation, :EndLocation, :Date, :cost, 
                           :StartTime, :EndTime, :gender, 
-                          :route, :preferences, :publishedDate, :publishedTime, :driverID
+                          :route, :preferences, :publishedDate, :publishedTime, :driverID, :ridedistance
                       )";
             
             $stmt = $conn->prepare($query);
@@ -197,10 +204,11 @@ class RideDetails {
             $stmt->bindValue(':vehicleModel', $this->vehicleModel); 
             $stmt->bindValue(':seats', $this->seats);
             $stmt->bindValue(':airCondition', $this->airCondition);
+            $stmt->bindValue(':carType', $this->carType);
             $stmt->bindValue(':StartLocation', $this->StartLocation);
             $stmt->bindValue(':EndLocation', $this->EndLocation);
             $stmt->bindValue(':Date', $this->Date);
-            $stmt->bindValue(':cost', $this->cost);
+            $stmt->bindValue(':cost', $calculatedSeatCost); 
             $stmt->bindValue(':StartTime', $this->StartTime);
             $stmt->bindValue(':EndTime', $this->EndTime);
             $stmt->bindValue(':gender', $this->gender);
@@ -210,6 +218,7 @@ class RideDetails {
             $stmt->bindValue(':publishedDate', $this->publishedDate);
             $stmt->bindValue(':publishedTime', $this->publishedTime);
             $stmt->bindValue(':driverID',$this->Driver_ID);
+            $stmt->bindValue(':ridedistance', $this->ridedistance);
             
             $res = $stmt->execute();
             if($res)
@@ -228,14 +237,96 @@ class RideDetails {
             return false;
         }
     }
+
+
+private function calculateCostPerSeat($carType, $distance, $seats) {
+
+    switch ($carType) {
+        case 'low-consumption':
+            $costPerKm = 30.73;
+            break;
+        case 'medium-consumption':
+            $costPerKm = 45.10;
+            break;
+        case 'high-consumption':
+            $costPerKm = 60.86;
+            break;
+        case 'hybrid':
+            $costPerKm = 30.20;
+            break;
+        default:
+            $costPerKm = 0;
+    }
+
+    $totalCost = $costPerKm * $distance;
+    $discountedCost = $totalCost * 0.75;
+    $costPerSeat = $discountedCost / $seats;
+    return round($costPerSeat, 2);
+}
+
+
+
+
+    // public function RequestRide($rideId, $userID, $seatsNo) {
+    //     try {
+    //         $dbcon = new DBconnector();
+    //         $con = $dbcon->getConnection();
+    //         $query = "SELECT u.Email, u.Name,u.User_ID, r.date, r.destinationPoint, r.departureTime, r.destinationTime, r.departurePoint 
+    //                   FROM tb_user u 
+    //                   JOIN tb_ride r ON u.User_ID = r.driverID 
+    //                   WHERE r.rideID = ?";
+    //         $stmt = $con->prepare($query);
+    //         $stmt->bindValue(1, $rideId);
+    //         $stmt->execute();
+    //         $res = $stmt->fetch(PDO::FETCH_ASSOC); 
+            
+    //         if ($res) {
+    //             $this->StartLocation = $res['departurePoint'];
+    //             $this->EndLocation = $res['destinationPoint'];
+    //             $driverId=$res['User_ID'];
+    //             $Drivername = $res['Name'];
+    //             $this->Date = $res['date'];
+    //             $driverEmail = $res['Email'];
+    //             $this->StartTime = $res['departureTime'];
+    //             $this->EndTime = $res['destinationTime'];
     
+    //             $query1 = "SELECT Name, Gender FROM tb_user WHERE User_ID = ?";
+    //             $stmt1 = $con->prepare($query1);
+    //             $stmt1->bindValue(1, $userID);
+    //             $stmt1->execute();
+    //             $user_res = $stmt1->fetch(PDO::FETCH_ASSOC); 
+                
+    //             if ($user_res) {
+    //                 $username = $user_res['Name'];
+    //                 $query2 ="INSERT INTO tb_booking (RideID,PassengerID,seats,driverId) VALUES(?,?,?,?)";
+    //                 $pstmt2=$con->prepare($query2);
+    //                 $pstmt2->bindValue(1,$rideId);
+    //                 $pstmt2->bindValue(2,$userID);
+    //                 $pstmt2->bindValue(3,$seatsNo);
+    //                 $pstmt2->bindValue(4,$driverId);
+    //                 if($pstmt2->execute())
+    //                 {
+    //                     RideDetails::sentRequestmail($Drivername, $driverEmail, $username, $this->StartLocation, $this->EndLocation, $this->StartTime, $this->EndTime, $this->Date, $seatsNo);
+    //                     return $driverEmail;
 
+    //                 }
+                   
+                    
+    //             }
+    //         }
+    //     } catch (PDOException $e) {
+    //         die("requestRide PDOException: " . $e->getMessage());
+           
+    //     }
+    // }
 
-    public function RequestRide($rideId, $userID, $seatsNo) {
+    public function RequestRide($rideId, $userID, $seatsNo, $distance,$fromtowhere) {
         try {
             $dbcon = new DBconnector();
             $con = $dbcon->getConnection();
-            $query = "SELECT u.Email, u.Name,u.User_ID, r.date, r.destinationPoint, r.departureTime, r.destinationTime, r.departurePoint 
+            
+            // Query to get ride and driver details
+            $query = "SELECT u.Email, u.Name, u.User_ID, r.date, r.destinationPoint, r.departureTime, r.destinationTime, r.departurePoint, r.carType
                       FROM tb_user u 
                       JOIN tb_ride r ON u.User_ID = r.driverID 
                       WHERE r.rideID = ?";
@@ -247,13 +338,15 @@ class RideDetails {
             if ($res) {
                 $this->StartLocation = $res['departurePoint'];
                 $this->EndLocation = $res['destinationPoint'];
-                $driverId=$res['User_ID'];
+                $driverId = $res['User_ID'];
                 $Drivername = $res['Name'];
                 $this->Date = $res['date'];
                 $driverEmail = $res['Email'];
                 $this->StartTime = $res['departureTime'];
                 $this->EndTime = $res['destinationTime'];
-    
+                $carType = $res['carType']; 
+                
+                
                 $query1 = "SELECT Name, Gender FROM tb_user WHERE User_ID = ?";
                 $stmt1 = $con->prepare($query1);
                 $stmt1->bindValue(1, $userID);
@@ -262,28 +355,59 @@ class RideDetails {
                 
                 if ($user_res) {
                     $username = $user_res['Name'];
-                    $query2 ="INSERT INTO tb_booking (RideID,PassengerID,seats,driverId) VALUES(?,?,?,?)";
-                    $pstmt2=$con->prepare($query2);
-                    $pstmt2->bindValue(1,$rideId);
-                    $pstmt2->bindValue(2,$userID);
-                    $pstmt2->bindValue(3,$seatsNo);
-                    $pstmt2->bindValue(4,$driverId);
-                    if($pstmt2->execute())
-                    {
-                        RideDetails::sentRequestmail($Drivername, $driverEmail, $username, $this->StartLocation, $this->EndLocation, $this->StartTime, $this->EndTime, $this->Date, $seatsNo);
-                        return $driverEmail;
-
-                    }
-                   
+                  
+                    // $carType = $this->getCarTypeFromRide($rideId); 
+                    // Calculate the total cost based on car type, distance, and seats requested
+                    // $totalCost = $this->calculateTotalCost($carType, $distance, $seatsNo);
+                    $totalCost = $this->calculateTotalCost($rideId, $distance, $seatsNo);
+                    // Insert the booking into the database
+                    $query2 = "INSERT INTO tb_booking (RideID, PassengerID, seats, driverId, totalCost, fromtowhere) VALUES (?, ?, ?, ?, ?,?)";
+                    $pstmt2 = $con->prepare($query2);
+                    $pstmt2->bindValue(1, $rideId);
+                    $pstmt2->bindValue(2, $userID);
+                    $pstmt2->bindValue(3, $seatsNo);
+                    $pstmt2->bindValue(4, $driverId);
+                    $pstmt2->bindValue(5, $totalCost);
+                    $pstmt2->bindValue(6, $fromtowhere);
                     
+                    if ($pstmt2->execute()) {
+                        
+                        RideDetails::sentRequestmail($Drivername, $driverEmail, $username, $this->StartLocation, $this->EndLocation, $this->StartTime, $this->EndTime, $this->Date, $seatsNo, $totalCost);
+                        return $driverEmail;
+                    }
                 }
             }
         } catch (PDOException $e) {
             die("requestRide PDOException: " . $e->getMessage());
-           
         }
     }
 
+    private function calculateTotalCost($rideId, $distance, $seatsNo) {
+        $dbcon = new DBconnector();
+        $con = $dbcon->getConnection();
+
+        $query = "SELECT seatCost, ridedistance FROM tb_ride WHERE rideID = ?";
+        $stmt = $con->prepare($query);
+        $stmt->bindValue(1, $rideId);
+        $stmt->execute();
+        $rideDetails = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+        if (!$rideDetails) {
+            throw new Exception("Ride details not found.");
+        }
+
+        $seatCost = (float) $rideDetails['seatCost'];
+        $rideDistance = (float) $rideDetails['ridedistance'];
+
+        if ($seatCost <= 0 || $rideDistance <= 0 || $distance <= 0 || $seatsNo <= 0) {
+            throw new Exception("Please enter valid numbers for distance, seats, and ride details.");
+        }
+        $costPerKm = $seatCost / $rideDistance;
+        $totalCost = $costPerKm * $distance * $seatsNo;
+    
+        return round($totalCost, 2);
+    }
+    
     public function AcceptBooking($Bookid){
         try{
             $dbcon = new DBconnector();
@@ -307,7 +431,8 @@ class RideDetails {
                     $Username = $user_res["Name"];
                     $seatsno = $user_res["seats"];
                     $rideId = $user_res["RideID"];
-    
+                    $totalCost = $user_res["totalCost"]; 
+
                     $query2 = "SELECT tb_user.* FROM tb_user JOIN tb_booking ON tb_user.User_ID = tb_booking.driverId WHERE tb_booking.BookingID = ?";
                     $stmt2 = $con->prepare($query2);
                     $stmt2->bindValue(1, $Bookid);
@@ -334,7 +459,7 @@ class RideDetails {
                             $pstmt3->bindValue(2, $rideId);
     
                             if($pstmt3->execute()) {
-                                if(RideDetails::sentAcceptMail($UserEmail, $Username, $drivername, $phone)) {
+                                if(RideDetails::sentAcceptMail($UserEmail, $Username, $drivername, $phone, $totalCost)) {
                                     return "Request accepted successfully";
                                 } else {
                                     return "Failed to send acceptance email";
@@ -362,7 +487,7 @@ class RideDetails {
 
     
     
-    public static function sentRequestmail($Drivername, $driverEmail, $username,  $StartLocation, $EndLocation, $StartTime, $EndTime, $Date,$seatsNo) {
+    public static function sentRequestmail($Drivername, $driverEmail, $username,  $StartLocation, $EndLocation, $StartTime, $EndTime, $Date,$seatsNo,$totalCost) {
         require __DIR__ . '/../mail/Exception.php';
         require __DIR__ . '/../mail/PHPMailer.php';
         require __DIR__ . '/../mail/SMTP.php';
@@ -381,7 +506,7 @@ class RideDetails {
             $mail->isHTML(true);
             $mail->Subject = 'Request sent!';
             $message = "Dear " . $Drivername . "<br><br>";
-            $message .= "<span style='color: green;'><b>A $username has requested $seatsNo seats for your ride.</b></span><br>";
+            $message .= "<span style='color: green;'><b>A $username has requested $seatsNo seats for your ride and total cost for their ride is:$totalCost.</b></span><br>";
             $message .= "<hr><br>";
             $message .= "Route: $StartLocation to $EndLocation<br>";
             $message .= "Start Time:$StartTime <br>";
@@ -400,7 +525,7 @@ class RideDetails {
             return false;
         } 
     }
-    public static function sentAcceptMail($email, $Username, $drivername, $phone) {
+    public static function sentAcceptMail($email, $Username, $drivername, $phone,$totalCost) {
         require __DIR__ . '/../mail/Exception.php';
         require __DIR__ . '/../mail/PHPMailer.php';
         require __DIR__ . '/../mail/SMTP.php';
@@ -831,7 +956,9 @@ class RideDetails {
                                 (r.seats - r.BookingSeats) AS availableSeats,  
                                 u.Name AS driverName, 
                                 u.PhoneNo AS driverContact,                     
-                                b.status AS bookingStatus
+                                b.status AS bookingStatus,
+                                b.totalCost AS passengercost,
+                                b.fromtowhere AS place
                             FROM 
                                 tb_booking b
                             JOIN 
@@ -863,7 +990,9 @@ class RideDetails {
                              (r.seats - COALESCE(SUM(b.seats), 0)) AS availableSeats, 
                              u.Name AS driverName, 
                              u.PhoneNo AS driverContact, 
-                             'driver' AS bookingStatus
+                             'driver' AS bookingStatus,
+                             b.totalCost AS passengercost,
+                             b.fromtowhere AS place
                           FROM 
                              tb_ride r
                           LEFT JOIN 
@@ -896,7 +1025,9 @@ class RideDetails {
                                         u.Name AS passengerName, 
                                         u.PhoneNo AS passengerContact, 
                                         b.seats AS seatsRequested,
-                                        b.BookingID AS requestID
+                                        b.BookingID AS requestID,
+                                        b.totalCost AS passengercost,
+                                        b.fromtowhere AS place
                                       FROM 
                                         tb_booking b
                                       JOIN 
@@ -913,7 +1044,9 @@ class RideDetails {
                     $queryAcceptedPassengers = "SELECT 
                                                   u.Name AS passengerName, 
                                                   u.PhoneNo AS passengerContact, 
-                                                  b.seats AS seatsRequested
+                                                  b.seats AS seatsRequested, 
+                                                  b.totalCost AS passengercost,
+                                                  b.fromtowhere AS place
                                                 FROM 
                                                   tb_booking b
                                                 JOIN 
@@ -940,6 +1073,8 @@ class RideDetails {
                     'seatCost' => $rideDetails['seatCost'],
                     'status' => $rideDetails['bookingStatus'],
                     'availableSeats' => $rideDetails['availableSeats'],
+                    'passengercost' => $rideDetails['passengercost'],
+                    'place'=>$rideDetails['place'],
                     'driver' => [
                         'name' => $rideDetails['driverName'],
                         'contact' => $rideDetails['driverContact']
@@ -957,59 +1092,126 @@ class RideDetails {
     }
     
     
-    public function rejectBooking($Bookid){
-        try{
-            $dbcon = new DBconnector();
-            $con = $dbcon->getConnection();
+    // public function rejectBooking($Bookid){
+    //     try{
+    //         $dbcon = new DBconnector();
+    //         $con = $dbcon->getConnection();
     
-            $query = "UPDATE tb_booking SET status=? WHERE BookingID=?";
-            $status = 'rejected';
-            $stmt = $con->prepare($query);
-            $stmt->bindValue(1, $status);
-            $stmt->bindValue(2, $Bookid);
+    //         $query = "UPDATE tb_booking SET status=? WHERE BookingID=?";
+    //         $status = 'rejected';
+    //         $stmt = $con->prepare($query);
+    //         $stmt->bindValue(1, $status);
+    //         $stmt->bindValue(2, $Bookid);
     
-            if($stmt->execute()) {
-                $query1 = "SELECT tb_user.*, tb_booking.* FROM tb_user JOIN tb_booking ON tb_user.User_ID = tb_booking.PassengerID WHERE tb_booking.BookingID = ?";
-                $stmt1 = $con->prepare($query1);
-                $stmt1->bindValue(1, $Bookid);
-                $stmt1->execute();
-                $user_res = $stmt1->fetch(PDO::FETCH_ASSOC);
+    //         if($stmt->execute()) {
+    //             $query1 = "SELECT tb_user.*, tb_booking.* FROM tb_user JOIN tb_booking ON tb_user.User_ID = tb_booking.PassengerID WHERE tb_booking.BookingID = ?";
+    //             $stmt1 = $con->prepare($query1);
+    //             $stmt1->bindValue(1, $Bookid);
+    //             $stmt1->execute();
+    //             $user_res = $stmt1->fetch(PDO::FETCH_ASSOC);
     
-                if($user_res) {
-                    $UserEmail = $user_res["Email"];
-                    $Username = $user_res["Name"];
-                    $seatsno = $user_res["seats"];
-                    $rideId = $user_res["RideID"];
+    //             if($user_res) {
+    //                 $UserEmail = $user_res["Email"];
+    //                 $Username = $user_res["Name"];
+    //                 $seatsno = $user_res["seats"];
+    //                 $rideId = $user_res["RideID"];
     
-                    $query2 = "SELECT tb_user.* FROM tb_user JOIN tb_booking ON tb_user.User_ID = tb_booking.driverId WHERE tb_booking.BookingID = ?";
-                    $stmt2 = $con->prepare($query2);
-                    $stmt2->bindValue(1, $Bookid);
-                    $stmt2->execute();
-                    $Driver_res = $stmt2->fetch(PDO::FETCH_ASSOC);
+    //                 $query2 = "SELECT tb_user.* FROM tb_user JOIN tb_booking ON tb_user.User_ID = tb_booking.driverId WHERE tb_booking.BookingID = ?";
+    //                 $stmt2 = $con->prepare($query2);
+    //                 $stmt2->bindValue(1, $Bookid);
+    //                 $stmt2->execute();
+    //                 $Driver_res = $stmt2->fetch(PDO::FETCH_ASSOC);
     
-                    if($Driver_res) {
-                        $drivername = $Driver_res["Name"];
-                        $phone = $Driver_res["PhoneNo"];
+    //                 if($Driver_res) {
+    //                     $drivername = $Driver_res["Name"];
+    //                     $phone = $Driver_res["PhoneNo"];
                         
-                        if(RideDetails::sentRejectMail($UserEmail, $Username, $drivername, $phone)) {
-                            return "Request Reject successfully";
+    //                     if(RideDetails::sentRejectMail($UserEmail, $Username, $drivername, $phone)) {
+    //                         return "Request Reject successfully";
+    //                     } else {
+    //                         return "Failed to send rejection email";
+    //                     }
+    //                 } else {
+    //                     return "Failed to fetch driver details";
+    //                 }
+    //             } else {
+    //                 return "Failed to fetch user details";
+    //             }
+    //         } else {
+    //             return "Failed to update booking status";
+    //         }
+    //     } catch(PDOException $e) {
+    //         return "rejectBooking PDOException: " . $e->getMessage();
+    //     }
+    // }
+    
+public function rejectBooking($Bookid){
+    try{
+        $dbcon = new DBconnector();
+        $con = $dbcon->getConnection();
+
+        // First, update the booking status to 'rejected'
+        $query = "UPDATE tb_booking SET status=? WHERE BookingID=?";
+        $status = 'rejected';
+        $stmt = $con->prepare($query);
+        $stmt->bindValue(1, $status);
+        $stmt->bindValue(2, $Bookid);
+
+        if($stmt->execute()) {
+            // After status is updated to 'rejected', fetch user and driver details
+            $query1 = "SELECT tb_user.*, tb_booking.* FROM tb_user JOIN tb_booking ON tb_user.User_ID = tb_booking.PassengerID WHERE tb_booking.BookingID = ?";
+            $stmt1 = $con->prepare($query1);
+            $stmt1->bindValue(1, $Bookid);
+            $stmt1->execute();
+            $user_res = $stmt1->fetch(PDO::FETCH_ASSOC);
+
+            if($user_res) {
+                $UserEmail = $user_res["Email"];
+                $Username = $user_res["Name"];
+                $seatsno = $user_res["seats"];
+                $rideId = $user_res["RideID"];
+
+                $query2 = "SELECT tb_user.* FROM tb_user JOIN tb_booking ON tb_user.User_ID = tb_booking.driverId WHERE tb_booking.BookingID = ?";
+                $stmt2 = $con->prepare($query2);
+                $stmt2->bindValue(1, $Bookid);
+                $stmt2->execute();
+                $Driver_res = $stmt2->fetch(PDO::FETCH_ASSOC);
+
+                if($Driver_res) {
+                    $drivername = $Driver_res["Name"];
+                    $phone = $Driver_res["PhoneNo"];
+                    
+                    // Send rejection email
+                    if(RideDetails::sentRejectMail($UserEmail, $Username, $drivername, $phone)) {
+                        
+                        // Delete the booking record after the status is rejected and email is sent
+                        $deleteQuery = "DELETE FROM tb_booking WHERE BookingID = ?";
+                        $stmtDelete = $con->prepare($deleteQuery);
+                        $stmtDelete->bindValue(1, $Bookid);
+                        
+                        if($stmtDelete->execute()) {
+                            return "Request rejected and booking deleted successfully";
                         } else {
-                            return "Failed to send rejection email";
+                            return "Failed to delete booking data";
                         }
                     } else {
-                        return "Failed to fetch driver details";
+                        return "Failed to send rejection email";
                     }
                 } else {
-                    return "Failed to fetch user details";
+                    return "Failed to fetch driver details";
                 }
             } else {
-                return "Failed to update booking status";
+                return "Failed to fetch user details";
             }
-        } catch(PDOException $e) {
-            return "rejectBooking PDOException: " . $e->getMessage();
+        } else {
+            return "Failed to update booking status";
         }
+    } catch(PDOException $e) {
+        return "rejectBooking PDOException: " . $e->getMessage();
     }
-    
+}
+
+
     public static function sentRejectMail($email, $Username, $drivername, $phone) {
         require __DIR__ . '/../mail/Exception.php';
         require __DIR__ . '/../mail/PHPMailer.php';
@@ -1416,7 +1618,7 @@ class RideDetails {
                         $Username = $user_res["Name"];
                         $rideId = $user_res["RideID"];
                         $seatsToRelease = (int)$user_res["seats"];  
-
+                        $passengerStatus = $user_res["status"]; 
                         $query2 = "SELECT Seats, BookingSeats FROM tb_ride WHERE RideID = ?";
                         $stmt2 = $con->prepare($query2);
                         $stmt2->bindValue(1, $rideId);
@@ -1427,7 +1629,15 @@ class RideDetails {
                             $currentAvailableSeats = (int)$ride_res["Seats"]; 
                             $currentBookingSeats = (int)$ride_res["BookingSeats"]; 
                             // $updatedAvailableSeats = $currentAvailableSeats + $seatsToRelease;  
-                            $updatedBookingSeats = $currentBookingSeats - $seatsToRelease;  
+                            if ($passengerStatus === 'waiting') { // Check if the status indicates acceptance
+                                $updatedBookingSeats = $currentBookingSeats;  // Update booking seats only if accepted
+                            }
+
+                            if ($passengerStatus === 'accepted') { // Check if the status indicates acceptance
+                                $updatedBookingSeats = $currentBookingSeats - $seatsToRelease;// Update booking seats only if accepted
+                            }
+        
+                           // $updatedBookingSeats = $currentBookingSeats - $seatsToRelease;  
         
                             $query3 = "UPDATE tb_ride SET BookingSeats=? WHERE RideID=?";
                             $stmt3 = $con->prepare($query3);
