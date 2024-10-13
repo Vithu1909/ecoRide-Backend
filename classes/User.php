@@ -215,36 +215,54 @@ class User
         try {
             $dbcon = new DBconnector();
             $conn = $dbcon->getConnection();
-
-            // Prepare query to check if username already exists
-            $query1 = "SELECT * FROM tb_user WHERE UserName = :username OR Email=:email";
+    
+          
+            $query1 = "SELECT * FROM tb_user WHERE UserName = :username OR Email = :email";
             $stmt1 = $conn->prepare($query1);
             $stmt1->bindParam(':username', $this->UserName);
             $stmt1->bindParam(':email', $this->Email);
             $stmt1->execute();
-
+    
             if ($stmt1->rowCount() > 0) {
-                // User already added
-                return false;
-            } else {
-                $hashedPassword = password_hash($this->Password, PASSWORD_BCRYPT);
-                $query = "INSERT INTO tb_user (User_ID, UserName,Name, Email, PhoneNo, NicNo, Gender, Password) VALUES (null,:UserName, :Name, :Email, :PhoneNo, :NicNo, :Gender, :Password)";
-                $stmt = $conn->prepare($query);
-                $stmt->bindValue(':UserName', $this->UserName);
-                $stmt->bindValue(':Name', $this->Name);
-                $stmt->bindValue(':Email', $this->Email);
-                $stmt->bindValue(':PhoneNo', $this->PhoneNo);
-                $stmt->bindValue(':NicNo', $this->NicNo);
-                $stmt->bindValue(':Gender', $this->Gender);
-                $stmt->bindValue(':Password', $hashedPassword);
-                $res = $stmt->execute();
-                return true;
+                return ["status" => 1, "message" => "User already exists with the same username or email."];
             }
+    
+     
+            if (!$this->isValidPassword($this->Password)) {
+                return ["status" => 2, "message" => "Password does not meet the required criteria."];
+            }
+    
+            
+            $hashedPassword = password_hash($this->Password, PASSWORD_BCRYPT);
+    
+          
+            $query = "INSERT INTO tb_user 
+                      (User_ID, UserName, Name, Email, PhoneNo, NicNo, Gender, Password) 
+                      VALUES (null, :UserName, :Name, :Email, :PhoneNo, :NicNo, :Gender, :Password)";
+            $stmt = $conn->prepare($query);
+            $stmt->bindValue(':UserName', $this->UserName);
+            $stmt->bindValue(':Name', $this->Name);
+            $stmt->bindValue(':Email', $this->Email);
+            $stmt->bindValue(':PhoneNo', $this->PhoneNo);
+            $stmt->bindValue(':NicNo', $this->NicNo);
+            $stmt->bindValue(':Gender', $this->Gender);
+            $stmt->bindValue(':Password', $hashedPassword);
+    
+            $stmt->execute();
+            return ["status" => 3, "message" => "User added successfully."];
         } catch (PDOException $e) {
             error_log("SignupUser PDOException: " . $e->getMessage());
-            return false;
+            return ["status" => 4, "message" => "Database error: " . $e->getMessage()];
         }
     }
+    
+    private function isValidPassword($password)
+    {
+        $pattern = '/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/';
+        return preg_match($pattern, $password);
+    }
+    
+    
 
     public function LoginUser()
     {

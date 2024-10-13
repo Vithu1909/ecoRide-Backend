@@ -13,22 +13,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $NicNo = $_POST["nic"];
         $Gender = $_POST["gender"];
         $Password = $_POST["password"];
-        
 
-        $user = new User(null, $Name, $UserName, $NicNo, $PhoneNo, $Email, $Gender, $Password,null,null);
+        $user = new User(null, $Name, $UserName, $NicNo, $PhoneNo, $Email, $Gender, $Password, null, null);
         $res = $user->SignupUser();
-        if ($res) {
-            $response = array("message" => "User Added Successfully");
-        } else {
-            $response = array("message" => "Failed to add User or User already exists");
-        }
-        echo json_encode($response);
+
+       
+        echo json_encode($res);
     } catch (Exception $e) {
-        $response = array("message" => "Error: " . $e->getMessage());
+        $response = [
+            "status" => "failure",
+            "message" => "Error: " . $e->getMessage()
+        ];
         echo json_encode($response);
     }
 } else {
-    $response = array("message" => "Invalid request method.");
+    $response = [
+        "status" => "failure",
+        "message" => "Invalid request method."
+    ];
     echo json_encode($response);
 }
 ?>
