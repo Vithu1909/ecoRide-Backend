@@ -33,6 +33,8 @@ class RideDetails {
     private $carType;
 
     private $ridedistance;
+
+    private $deductionID;
     public function __construct() {}
 
    
@@ -60,6 +62,9 @@ class RideDetails {
     public function setcarType($carType){$this->carType=$carType;}
     public function setRideDistance($ridedistance){$this->ridedistance=$ridedistance;}
 
+    public function setDeductionId($deductionID) {
+        $this->deductionID = $deductionID;
+    }
     public static function DisplayRide() {
         try {
             $dbcon = new DBconnector();
@@ -1266,7 +1271,7 @@ public function rejectBooking($Bookid){
             }
     
            
-            $queryRide = "DELETE FROM tb_ride WHERE RideID = ?";
+            $queryRide = "DELETE FROM tb_ride WHERE rideID = ?";
             $stmtRide = $con->prepare($queryRide);
             $stmtRide->bindValue(1, $rideId);
     
@@ -1592,11 +1597,122 @@ public function rejectBooking($Bookid){
         //         return "cancelBooking PDOException: " . $e->getMessage();
         //     }
         // }
+        // public function cancelBooking($Bookid) { 
+        //     try {
+        //         $dbcon = new DBconnector();
+        //         $con = $dbcon->getConnection();
+        
+        //         $con->beginTransaction();
+        
+        //         $query = "UPDATE tb_booking SET status=? WHERE BookingID=?";
+        //         $status = 'cancel';
+        //         $stmt = $con->prepare($query);
+        //         $stmt->bindValue(1, $status);
+        //         $stmt->bindValue(2, $Bookid);
+        
+        //         if ($stmt->execute()) {
+        //             $query1 = "SELECT tb_user.*, tb_booking.* FROM tb_user 
+        //                        JOIN tb_booking ON tb_user.User_ID = tb_booking.PassengerID 
+        //                        WHERE tb_booking.BookingID = ?";
+        //             $stmt1 = $con->prepare($query1);
+        //             $stmt1->bindValue(1, $Bookid);
+        //             $stmt1->execute();
+        //             $user_res = $stmt1->fetch(PDO::FETCH_ASSOC);
+        
+        //             if ($user_res) {
+        //                 $Username = $user_res["Name"];
+        //                 $rideId = $user_res["RideID"];
+        //                 $seatsToRelease = (int)$user_res["seats"];  
+        //                 $passengerStatus = $user_res["status"]; 
+        //                 $query2 = "SELECT Seats, BookingSeats FROM tb_ride WHERE RideID = ?";
+        //                 $stmt2 = $con->prepare($query2);
+        //                 $stmt2->bindValue(1, $rideId);
+        //                 $stmt2->execute();
+        //                 $ride_res = $stmt2->fetch(PDO::FETCH_ASSOC);
+        
+        //                 if ($ride_res) {
+        //                     $currentAvailableSeats = (int)$ride_res["Seats"]; 
+        //                     $currentBookingSeats = (int)$ride_res["BookingSeats"]; 
+        //                     // $updatedAvailableSeats = $currentAvailableSeats + $seatsToRelease;  
+        //                     if ($passengerStatus === 'waiting') { // Check if the status indicates acceptance
+        //                         $updatedBookingSeats = $currentBookingSeats;  // Update booking seats only if accepted
+        //                     }
+
+        //                     if ($passengerStatus === 'accepted') { // Check if the status indicates acceptance
+        //                         $updatedBookingSeats = $currentBookingSeats - $seatsToRelease;// Update booking seats only if accepted
+        //                     }
+        
+        //                    // $updatedBookingSeats = $currentBookingSeats - $seatsToRelease;  
+        
+        //                     $query3 = "UPDATE tb_ride SET BookingSeats=? WHERE RideID=?";
+        //                     $stmt3 = $con->prepare($query3);
+        //                     // $stmt3->bindValue(1, $updatedAvailableSeats);
+        //                     $stmt3->bindValue(1, $updatedBookingSeats); 
+        //                     $stmt3->bindValue(2, $rideId);
+        
+        //                     if ($stmt3->execute()) {
+        
+        //                         $query4 = "SELECT tb_user.* FROM tb_user 
+        //                                    JOIN tb_booking ON tb_user.User_ID = tb_booking.driverId 
+        //                                    WHERE tb_booking.BookingID = ?";
+        //                         $stmt4 = $con->prepare($query4);
+        //                         $stmt4->bindValue(1, $Bookid);
+        //                         $stmt4->execute();
+        //                         $Driver_res = $stmt4->fetch(PDO::FETCH_ASSOC);
+        
+        //                         if ($Driver_res) {
+        //                             $driverEmail = $Driver_res["Email"];
+        //                             $drivername = $Driver_res["Name"];
+        
+        //                             if (RideDetails::sentCancelMail($driverEmail, $drivername, $Username)) {
+
+        //                                 $query5 = "DELETE FROM tb_booking WHERE BookingID = ?";
+        //                                 $stmt5 = $con->prepare($query5);
+        //                                 $stmt5->bindValue(1, $Bookid);
+        
+        //                                 if ($stmt5->execute()) {
+        //                                     $con->commit();
+        //                                     return [
+        //                                         "message" => "Booking cancelled, booking removed, and driver notified successfully",
+        //                                         "availableSeats" => $currentAvailableSeats ,
+        //                                         "updatedBookingSeats" => $updatedBookingSeats  
+        //                                     ];
+        //                                 } else {
+        //                                     $con->rollBack();
+        //                                     return "Failed to remove booking record";
+        //                                 }
+        //                             } else {
+        //                                 $con->rollBack();
+        //                                 return "Failed to send cancellation email to driver";
+        //                             }
+        //                         } else {
+        //                             return "Failed to fetch driver details";
+        //                         }
+        //                     } else {
+        //                         $con->rollBack();
+        //                         return "Failed to update available seats and booking count for the ride";
+        //                     }
+        //                 } else {
+        //                     return "Failed to fetch ride details";
+        //                 }
+        //             } else {
+        //                 return "Failed to fetch user details";
+        //             }
+        //         } else {
+        //             return "Failed to update booking status";
+        //         }
+        //     } catch (PDOException $e) {
+        //         $con->rollBack();
+        //         return "cancelBooking PDOException: " . $e->getMessage();
+        //     }
+        // }
+
         public function cancelBooking($Bookid) { 
             try {
                 $dbcon = new DBconnector();
                 $con = $dbcon->getConnection();
         
+              
                 $con->beginTransaction();
         
                 $query = "UPDATE tb_booking SET status=? WHERE BookingID=?";
@@ -1617,8 +1733,9 @@ public function rejectBooking($Bookid){
                     if ($user_res) {
                         $Username = $user_res["Name"];
                         $rideId = $user_res["RideID"];
-                        $seatsToRelease = (int)$user_res["seats"];  
+                        $seatsToRelease = (int)$user_res["seats"];
                         $passengerStatus = $user_res["status"]; 
+        
                         $query2 = "SELECT Seats, BookingSeats FROM tb_ride WHERE RideID = ?";
                         $stmt2 = $con->prepare($query2);
                         $stmt2->bindValue(1, $rideId);
@@ -1626,27 +1743,24 @@ public function rejectBooking($Bookid){
                         $ride_res = $stmt2->fetch(PDO::FETCH_ASSOC);
         
                         if ($ride_res) {
-                            $currentAvailableSeats = (int)$ride_res["Seats"]; 
-                            $currentBookingSeats = (int)$ride_res["BookingSeats"]; 
-                            // $updatedAvailableSeats = $currentAvailableSeats + $seatsToRelease;  
-                            if ($passengerStatus === 'waiting') { // Check if the status indicates acceptance
-                                $updatedBookingSeats = $currentBookingSeats;  // Update booking seats only if accepted
-                            }
-
-                            if ($passengerStatus === 'accepted') { // Check if the status indicates acceptance
-                                $updatedBookingSeats = $currentBookingSeats - $seatsToRelease;// Update booking seats only if accepted
+                            $currentAvailableSeats = (int)$ride_res["Seats"];
+                            $currentBookingSeats = (int)$ride_res["BookingSeats"];
+        
+                            if ($passengerStatus === 'waiting') {
+                                $updatedBookingSeats = $currentBookingSeats;
+                            } else if ($passengerStatus === 'accepted') {
+                                $updatedBookingSeats = $currentBookingSeats - $seatsToRelease;
                             }
         
-                           // $updatedBookingSeats = $currentBookingSeats - $seatsToRelease;  
-        
+                          
                             $query3 = "UPDATE tb_ride SET BookingSeats=? WHERE RideID=?";
                             $stmt3 = $con->prepare($query3);
-                            // $stmt3->bindValue(1, $updatedAvailableSeats);
                             $stmt3->bindValue(1, $updatedBookingSeats); 
                             $stmt3->bindValue(2, $rideId);
         
                             if ($stmt3->execute()) {
         
+                                
                                 $query4 = "SELECT tb_user.* FROM tb_user 
                                            JOIN tb_booking ON tb_user.User_ID = tb_booking.driverId 
                                            WHERE tb_booking.BookingID = ?";
@@ -1660,47 +1774,71 @@ public function rejectBooking($Bookid){
                                     $drivername = $Driver_res["Name"];
         
                                     if (RideDetails::sentCancelMail($driverEmail, $drivername, $Username)) {
-
-                                        $query5 = "DELETE FROM tb_booking WHERE BookingID = ?";
+        
+                                        $query5 = "DELETE FROM tb_deductions WHERE BookingID = ?";
                                         $stmt5 = $con->prepare($query5);
                                         $stmt5->bindValue(1, $Bookid);
         
                                         if ($stmt5->execute()) {
-                                            $con->commit();
-                                            return [
-                                                "message" => "Booking cancelled, booking removed, and driver notified successfully",
-                                                "availableSeats" => $currentAvailableSeats ,
-                                                "updatedBookingSeats" => $updatedBookingSeats  
-                                            ];
+                     
+                                            $query6 = "DELETE FROM tb_booking WHERE BookingID = ?";
+                                            $stmt6 = $con->prepare($query6);
+                                            $stmt6->bindValue(1, $Bookid);
+        
+                                            if ($stmt6->execute()) {
+                                            
+                                                $con->commit();
+                                                return [
+                                                    "message" => "Booking cancelled, booking and deduction records removed, and driver notified successfully",
+                                                    "availableSeats" => $currentAvailableSeats,
+                                                    "updatedBookingSeats" => $updatedBookingSeats  
+                                                ];
+                                            } else {
+                                                error_log("Failed to remove booking record.");
+                                                $con->rollBack();
+                                                return "Failed to remove booking record";
+                                            }
                                         } else {
+                                            error_log("Failed to remove deduction record.");
                                             $con->rollBack();
-                                            return "Failed to remove booking record";
+                                            return "Failed to remove deduction record";
                                         }
                                     } else {
+                                        error_log("Failed to send cancellation email to driver.");
                                         $con->rollBack();
                                         return "Failed to send cancellation email to driver";
                                     }
                                 } else {
+                                    error_log("Failed to fetch driver details.");
                                     return "Failed to fetch driver details";
                                 }
                             } else {
+                                error_log("Failed to update booking seats for the ride.");
                                 $con->rollBack();
-                                return "Failed to update available seats and booking count for the ride";
+                                return "Failed to update booking seats for the ride";
                             }
                         } else {
+                            error_log("Failed to fetch ride details.");
                             return "Failed to fetch ride details";
                         }
                     } else {
+                        error_log("Failed to fetch user details.");
                         return "Failed to fetch user details";
                     }
                 } else {
+                    error_log("Failed to update booking status.");
                     return "Failed to update booking status";
                 }
             } catch (PDOException $e) {
+                error_log("cancelBooking PDOException: " . $e->getMessage());
                 $con->rollBack();
                 return "cancelBooking PDOException: " . $e->getMessage();
             }
         }
+        
+        
+
+
         public static function sentCancelMail($driverEmail, $drivername, $Username) {
             require __DIR__ . '/../mail/Exception.php';
             require __DIR__ . '/../mail/PHPMailer.php';
@@ -1801,6 +1939,141 @@ public function rejectBooking($Bookid){
                     return false;
                 }
             }
-    
+
+
+            // public function deductAmountAndCalculateRevenue($bookingId) {
+            //     try {
+            //         $dbcon = new DBconnector();
+            //         $conn = $dbcon->getConnection();
+                    
+            //         // Fetch the driver's cost from the booking record
+            //         $selectCostQuery = "SELECT driverId, totalCost FROM tb_booking WHERE BookingID = ?";
+            //         $stmt = $conn->prepare($selectCostQuery);
+            //         $stmt->bindValue(1, $bookingId);
+            //         $stmt->execute();
+            //         $booking = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            //         if ($booking) {
+            //             $driverId = $booking['driverId'];
+            //             $passengercost = $booking['totalCost'];
+                        
+            //             // Calculate the deduction (10% of passengercost)
+            //             $deduction = $passengercost * 0.1;
+                        
+            //             // Insert the deduction into the tb_deductions table
+            //             $insertDeductionQuery = "INSERT INTO tb_deductions (driverID, BookingID, deductionAmount, deductionDate) 
+            //                                      VALUES (?, ?, ?, NOW())";
+            //             $insertStmt = $conn->prepare($insertDeductionQuery);
+            //             $insertStmt->bindValue(1, $driverId);
+            //             $insertStmt->bindValue(2, $bookingId);
+            //             $insertStmt->bindValue(3, $deduction);
+            //             $res = $insertStmt->execute();
+            
+            //             if ($res) {
+            //                 return array(
+            //                     "message" => "Deduction of Rs. $deduction has been applied to the booking."
+            //                 );
+            //             } else {
+            //                 return "Failed to insert deduction record.";
+            //             }
+            //         } else {
+            //             return "Booking ID not found.";
+            //         }
+            
+            //     } catch (PDOException $e) {
+            //         error_log("deductAmountAndCalculateRevenue PDOException: " . $e->getMessage());
+            //         return false;
+            //     }
+            // }
+
+            public function deductAmountAndCalculateRevenue($bookingId) {
+                try {
+                    $dbcon = new DBconnector();
+                    $conn = $dbcon->getConnection();
+                    
+                    // Start a transaction to ensure both operations are atomic
+                    $conn->beginTransaction();
+            
+                    // Fetch the driver's cost from the booking record
+                    $selectCostQuery = "SELECT driverId, totalCost FROM tb_booking WHERE BookingID = ?";
+                    $stmt = $conn->prepare($selectCostQuery);
+                    $stmt->bindValue(1, $bookingId);
+                    $stmt->execute();
+                    $booking = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+                    if ($booking) {
+                        $driverId = $booking['driverId'];
+                        $passengercost = $booking['totalCost'];
+                        
+                        // Calculate the deduction (10% of passengercost)
+                        $deduction = $passengercost * 0.1;
+                        
+                        // Step 1: Update the booking status to 'accepted'
+                        $updateStatusQuery = "UPDATE tb_booking SET status = 'accepted' WHERE BookingID = ?";
+                        $updateStmt = $conn->prepare($updateStatusQuery);
+                        $updateStmt->bindValue(1, $bookingId);
+                        $updateStmt->execute();
+            
+                        // Step 2: Insert the deduction into the tb_deductions table
+                        $insertDeductionQuery = "INSERT INTO tb_deductions (driverID, BookingID, deductionAmount, deductionDate) 
+                                                 VALUES (?, ?, ?, NOW())";
+                        $insertStmt = $conn->prepare($insertDeductionQuery);
+                        $insertStmt->bindValue(1, $driverId);
+                        $insertStmt->bindValue(2, $bookingId);
+                        $insertStmt->bindValue(3, $deduction);
+                        $deductionResult = $insertStmt->execute();
+            
+                        // Commit the transaction if both operations are successful
+                        if ($updateStmt->rowCount() > 0 && $deductionResult) {
+                            $conn->commit();
+                            return array(
+                                "message" => "Deduction of Rs. $deduction has been applied to the booking and the status has been updated to accepted."
+                            );
+                        } else {
+                            // Rollback if something went wrong
+                            $conn->rollBack();
+                            return "Failed to apply deduction or update booking status.";
+                        }
+                    } else {
+                        return "Booking ID not found.";
+                    }
+                } catch (PDOException $e) {
+                    // Rollback in case of error
+                    $conn->rollBack();
+                    error_log("deductAmountAndCalculateRevenue PDOException: " . $e->getMessage());
+                    return false;
+                }
+            }
+
+    //         public function getTotalDeductionAmountByDeductionId()
+    // {
+    //     try {
+    //         // Create a new database connection
+    //         $dbcon = new DBconnector();
+    //         $conn = $dbcon->getConnection();
+
+    //         // SQL query to select the total deduction amount for the given Deduction ID
+    //         $sql = "SELECT SUM(deductionAmount) AS total_deduction FROM tb_deductions WHERE DeductionID = :deductionID";
+    //         $stmt = $conn->prepare($sql);
+            
+    //         // Bind the deduction ID to the prepared statement
+    //         $stmt->bindParam(':deductionID', $this->deductionID, PDO::PARAM_INT);
+
+    //         // Execute the statement
+    //         $stmt->execute();
+
+    //         // Fetch the result
+    //         $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    //         // Return the total deduction amount, or 0 if no deductions found
+    //         return $result['total_deduction'] ?? 0;
+    //     } catch (PDOException $e) {
+    //         // Log any errors
+    //         error_log("getTotalDeductionAmountByDeductionId PDOException: " . $e->getMessage());
+    //         return false;
+    //     }
+    // }
+
+  
 }
 
