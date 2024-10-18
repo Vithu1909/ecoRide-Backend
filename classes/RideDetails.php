@@ -35,6 +35,9 @@ class RideDetails {
     private $ridedistance;
 
     private $deductionID;
+
+    private $rateID;
+    
     public function __construct() {}
 
    
@@ -64,6 +67,10 @@ class RideDetails {
 
     public function setDeductionId($deductionID) {
         $this->deductionID = $deductionID;
+    }
+
+    public function setrateID($rateID){
+        $this->rateID=$rateID;
     }
     public static function DisplayRide() {
         try {
@@ -1253,40 +1260,70 @@ public function rejectBooking($Bookid){
             return false;
         }
     }
-    public function deleteRide($rideId) {
-        try {
-            $dbcon = new DBconnector();
-            $con = $dbcon->getConnection();
-    
-           
-    
-           
-            $queryBookings = "DELETE FROM tb_booking WHERE RideID = ?";
-            $stmtBookings = $con->prepare($queryBookings);
-            $stmtBookings->bindValue(1, $rideId);
-    
-            if (!$stmtBookings->execute()) {
-                $con->rollBack();
-                return "Failed to delete bookings";
-            }
-    
-           
-            $queryRide = "DELETE FROM tb_ride WHERE rideID = ?";
-            $stmtRide = $con->prepare($queryRide);
-            $stmtRide->bindValue(1, $rideId);
-    
-            if ($stmtRide->execute()) {
-                
-                return "Ride and associated bookings deleted successfully";
-            } else {
-                
-                return "Failed to delete the ride";
-            }
-        } catch(PDOException $e) {
-            $con->rollBack();
-            return "deleteRide PDOException: " . $e->getMessage();
+    public function deleteRide($rideId, $rating) {
+    try {
+        $dbcon = new DBconnector();
+        $con = $dbcon->getConnection();
+
+        // Start a transaction
+        $con->beginTransaction();
+
+        // Delete from tb_rating using rateID
+        $deleteRatingQuery = "DELETE FROM tb_rating WHERE rateID = ?";
+        $stmtRating = $con->prepare($deleteRatingQuery);
+        $stmtRating->bindParam(1, $rating, PDO::PARAM_INT);
+        $stmtRating->execute();
+
+        // Get all bookings related to the ride
+        $getBookingsQuery = "SELECT BookingID FROM tb_booking WHERE RideID = ?";
+        $stmtGetBookings = $con->prepare($getBookingsQuery);
+        $stmtGetBookings->bindParam(1, $rideId, PDO::PARAM_INT);
+        $stmtGetBookings->execute();
+        $bookings = $stmtGetBookings->fetchAll(PDO::FETCH_ASSOC);
+
+        // Loop through each booking and delete associated deductions
+        foreach ($bookings as $booking) {
+            $bookingID = $booking['BookingID'];
+
+            // Delete from tb_deductions where BookingID matches
+            $deleteDeductionQuery = "DELETE FROM tb_deductions WHERE BookingID = ?";
+            $stmtDeductions = $con->prepare($deleteDeductionQuery);
+            $stmtDeductions->bindParam(1, $bookingID, PDO::PARAM_INT);
+            $stmtDeductions->execute();
         }
+
+        // Delete from tb_booking using rideID
+        $deleteBookingsQuery = "DELETE FROM tb_booking WHERE RideID = ?";
+        $stmtBookings = $con->prepare($deleteBookingsQuery);
+        $stmtBookings->bindParam(1, $rideId, PDO::PARAM_INT);
+
+        if (!$stmtBookings->execute()) {
+            $con->rollBack();
+            return "Failed to delete bookings";
+        }
+
+        // Delete from tb_ride using rideID
+        $deleteRideQuery = "DELETE FROM tb_ride WHERE rideID = ?";
+        $stmtRide = $con->prepare($deleteRideQuery);
+        $stmtRide->bindParam(1, $rideId, PDO::PARAM_INT);
+
+        if ($stmtRide->execute()) {
+            // Commit transaction
+            $con->commit();
+            return "Ride and associated bookings and deductions deleted successfully";
+        } else {
+            // Rollback transaction if deletion failed
+            $con->rollBack();
+            return "Failed to delete the ride";
+        }
+    } catch (PDOException $e) {
+        // Rollback transaction in case of any exception
+        $con->rollBack();
+        return "deleteRide PDOException: " . $e->getMessage();
     }
+}
+
+    
     
 
     // public function editRide($rideID, $driverID, $date, $departureTime, $destinationTime, $availableSeats) {
