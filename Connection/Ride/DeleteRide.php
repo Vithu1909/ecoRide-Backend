@@ -7,24 +7,29 @@ use classes\RideDetails;
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     try {
+        // Make sure to check if both rideID and rateID are provided
+        if (isset($_POST["rideID"]) && isset($_POST["rateID"])) {
+            $rideId = $_POST["rideID"];  // Correctly retrieve rideID from request
+            $rating = $_POST["rateID"];  // Correctly retrieve rateID from request
 
-        if (isset($_POST["rideID"])) {
-            $rideId = $_POST["rideID"]; 
-
+            // Log received values for debugging
             error_log("Received RideID: " . $rideId); 
+            error_log("Received rateID: " . $rating);
 
+            // Create RideDetails object and delete the ride
             $ride = new RideDetails();
-            $res = $ride->deleteRide($rideId);
+            $res = $ride->deleteRide($rideId, $rating);
 
-            if ($res === "Ride and associated bookings deleted successfully") {
-                $response = array("message" => $res, "status" => 1);
+            // Check response and send appropriate JSON response
+            if ($res === "Ride and associated bookings and deductions deleted successfully") {
+                $response = array("message" => $res, "status" => 1);  // Set status to 1 for success
             } else {
-                $response = array("message" => $res, "status" => 2);
+                $response = array("message" => $res, "status" => 2);  // Set status to 2 for failure
             }
 
             echo json_encode($response);
         } else {
-            throw new Exception("rideId not provided in request");
+            throw new Exception("rideID or rateID not provided in request");
         }
     } catch (PDOException $e) {
         $response = array("message" => "Error: " . $e->getMessage());
@@ -37,4 +42,3 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $response = array("message" => "Invalid request method.");
     echo json_encode($response);
 }
-?>
