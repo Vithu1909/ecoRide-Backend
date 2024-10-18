@@ -37,6 +37,8 @@ class User
         $this->userRole = $userRole;
         $this->otp = $otp;
     }
+    
+
 
 
     public function setProfileData($userID, $username, $name, $email, $nicNo, $gender, $phoneNo)
@@ -474,21 +476,27 @@ class User
         }
     }
 
-    public function deleteUser()
-    {
-        try {
-            $dbcon = new DBconnector();
-            $conn = $dbcon->getConnection();
-            $query = "DELETE FROM tb_user WHERE User_ID = :userid";
-            $stmt = $conn->prepare($query);
-            $stmt->bindParam(':userid', $this->User_ID);
-            $res = $stmt->execute();
-            return $res;
-        } catch (PDOException $e) {
-            error_log("Delete user PDOException: " . $e->getMessage());
-            return false;
+   public function deleteUser($userids)
+{
+   
+        $dbcon = new DBconnector();
+        $conn = $dbcon->getConnection();
+        $query = "DELETE FROM tb_user WHERE User_ID = :userid";
+        $stmt = $conn->prepare($query);
+        $stmt->bindParam(':userid', $userids);
+        $stmt->execute();
+        
+        // Check if any row was affected
+        if ($stmt->rowCount() > 0) {
+            return true;
+        } else {
+            return false; // No row was deleted (user may not exist)
         }
-    }
+    
+    
+    
+}
+
     public function selectUserrole()
     {
         try {
@@ -647,65 +655,6 @@ class User
     }
 
 
-// Add this method in your backend
-public function getTotalDeductionAmount() {
-    try {
-        // Create a new database connection
-        $dbcon = new DBconnector();
-        $conn = $dbcon->getConnection();
-
-        // SQL query to get the total sum of deductions
-        $sql = "SELECT SUM(deductionAmount) AS total_deduction FROM tb_deductions";
-        $stmt = $conn->prepare($sql);
-
-        // Execute the statement
-        $stmt->execute();
-
-        // Fetch the result
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        // Return the total deduction amount, or 0 if no deductions found
-        return $result['total_deduction'] ?? 0;
-    } catch (PDOException $e) {
-        // Log any errors and return false
-        error_log("getTotalDeductionAmount PDOException: " . $e->getMessage());
-        return false;
-    }
-}
-
-public function getMonthlyDeductionAmounts() {
-    try {
-        // Create a new database connection
-        $dbcon = new DBconnector();
-        $conn = $dbcon->getConnection();
-
-        // SQL query to get the total sum of deductions grouped by month and year
-        $sql = "
-            SELECT 
-                YEAR(deductionDate) AS deduction_year, 
-                MONTH(deductionDate) AS deduction_month, 
-                SUM(deductionAmount) AS total_deduction 
-            FROM tb_deductions 
-            GROUP BY deduction_year, deduction_month 
-            ORDER BY deduction_year, deduction_month
-        ";
-
-        $stmt = $conn->prepare($sql);
-
-        // Execute the statement
-        $stmt->execute();
-
-        // Fetch the results
-        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // Return the month-wise total deduction amounts
-        return $results;
-    } catch (PDOException $e) {
-        // Log any errors and return false
-        error_log("getMonthlyDeductionAmounts PDOException: " . $e->getMessage());
-        return false;
-    }
-}
 
 
 }

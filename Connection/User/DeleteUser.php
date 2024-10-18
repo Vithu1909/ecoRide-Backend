@@ -8,21 +8,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     try {
         $userID = $_POST["userid"];
         
+        $user = new User($userID, null, null, null, null, null, null, null, null, null);
+        
 
-        $user = new User($userID,null , null, null, null, null, null, null,null,null);
-        $res = $user->deleteUser();
+        $res = $user->deleteUser($userID);
         if ($res) {
-            $response = array("res" => $res,"message" => "User Delele Successfully");
+            $response = array("status" => 1, "message" => "User deleted successfully");
         } else {
-            $response = array("message" => "User Delele not  Successfully");
+            $response = array("status" => 0, "message" => "User deletion failed","userid"=>$userID);
         }
         echo json_encode($response);
     } catch (Exception $e) {
-        $response = array("message" => "Error: " . $e->getMessage());
+        $response = array("status" => 0, "message" => "Error: " . $e->getMessage());
         echo json_encode($response);
     }
 } else {
-    $response = array("message" => "Invalid request method.");
+    $response = array("status" => 0, "message" => "Invalid request method.");
     echo json_encode($response);
 }
 ?>
