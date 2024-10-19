@@ -2111,6 +2111,46 @@ public function rejectBooking($Bookid){
     //     }
     // }
 
-  
+    public function AddRidePayment($cardData, $driverID) {
+        try {
+            $dbcon = new DBconnector();
+            $conn = $dbcon->getConnection();
+          
+            $paymentDate = date('Y-m-d H:i:s');
+            
+            $hashedCVV = password_hash($cardData['cardCVV'], PASSWORD_DEFAULT);
+
+            $query = "INSERT INTO tb_payment (
+                          driverID, cardName, cardNumber, cardExpiryDate, cardCVV, paymentDate
+                      ) 
+                      VALUES (
+                          :driverID, :cardName, :cardNumber, :cardExpiryDate, :cardCVV, :paymentDate
+                      )";
+           
+            $stmt = $conn->prepare($query);
+            $stmt->bindValue(':driverID', $driverID);
+            $stmt->bindValue(':cardName', $cardData['cardName']);
+            $stmt->bindValue(':cardNumber', $cardData['cardNumber']);
+            $stmt->bindValue(':cardExpiryDate', $cardData['cardExpiryDate']);
+            $stmt->bindValue(':cardCVV', $hashedCVV);
+            $stmt->bindValue(':paymentDate', $paymentDate);
+            
+           
+            $res = $stmt->execute();
+            
+        
+            if ($res) {
+              
+                return true;
+            } else {
+                return false;
+            }
+            
+        } catch (PDOException $e) {
+            
+            error_log("AddRidePayment PDOException: " . $e->getMessage());
+            return false;
+        }
+    }
 }
 
