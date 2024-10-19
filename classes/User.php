@@ -763,7 +763,69 @@ class User
         }
     }
 
-
+    public static function getHistory($userID)
+    {
+        try {
+            $dbcon = new DBconnector();
+            $con = $dbcon->getConnection();
+    
+            
+            // $queryPassengerHistory = "SELECT * FROM tb_booking WHERE passengerID = :userID";
+            $queryPassengerHistory="SELECT 
+                    b.BookingID AS Bookid, 
+                    r.rideID,
+                    r.departurePoint, 
+                    r.destinationPoint, 
+                    r.date, 
+                    r.vehicleNo, 
+                    r.rideStatus
+                FROM 
+                    tb_ride r
+                LEFT JOIN 
+                    tb_booking b ON r.rideID = b.RideID
+                WHERE 
+                    b.passengerID = :userID";
+    
+            $stmtPassenger = $con->prepare($queryPassengerHistory);
+            $stmtPassenger->bindParam(':userID', $userID, PDO::PARAM_INT);
+    
+            if (!$stmtPassenger->execute()) {
+                return false; 
+            }
+    
+            $passengerHistory = $stmtPassenger->fetchAll(PDO::FETCH_ASSOC);
+    
+            
+            $queryDriverHistory = "SELECT * FROM tb_ride WHERE driverID = :userID";
+    
+            $stmtDriver = $con->prepare($queryDriverHistory);
+            $stmtDriver->bindParam(':userID', $userID, PDO::PARAM_INT);
+    
+            if (!$stmtDriver->execute()) {
+                return false; 
+            }
+    
+            $driverHistory = $stmtDriver->fetchAll(PDO::FETCH_ASSOC);
+    
+            $historyList = array_merge($passengerHistory, $driverHistory);
+    
+           
+            error_log("Passenger History: " . json_encode($passengerHistory));
+            error_log("Driver History: " . json_encode($driverHistory));
+    
+           
+            if (empty($historyList)) {
+                return false; 
+            }
+    
+            return $historyList;
+        } catch (PDOException $e) {
+            error_log("getHistory PDOException: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+        
     
     
 }
