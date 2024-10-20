@@ -29,25 +29,5 @@ if ($method === "POST") {
 else {
     echo json_encode(array("message" => "Method not allowed."));
 }
-//     try {
-//         $UserName = $_POST["username"];
-//         $Password = $_POST["password"];
 
-//         $user = new User(null, null, $UserName, null, null, null, null, $Password,null);
-//         $res = $user->LoginUser();
-
-//         if ($res) {
-//             echo json_encode(array("message" => "Login successful.", "userID" => $res['User_ID'], "userrole" => $res['UserRole']));
-//         } else {
-//             echo json_encode(array("message" => "Invalid Username or Password."));
-//         }
-//     } catch (Exception $e) {
-//         $response = array("message" => "Error: " . $e->getMessage());
-//         echo json_encode($response);
-//     }
-// } else {
-//     $response = array("message" => "Invalid request method.");
-//     echo 'Invalid';
-//     //echo json_encode($response);
-// }
 ?>
